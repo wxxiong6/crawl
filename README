@@ -1,1 +1,6 @@
 php爬虫相关函数
+
+
+$url = "http://www.sina.com.cn";
+$str = file_get_contents($url);
+print_r(getMetaTags($str));
