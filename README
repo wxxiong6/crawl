@@ -1,6 +1,23 @@
 php爬虫相关函数
 
-
-$url = "http://www.sina.com.cn";
-$str = file_get_contents($url);
-print_r(getMetaTags($str));
+完整代码目录
+│  crwal.sql    --数据库脚本
+│  index.php    --入口文件
+│  LICENSE
+│  README
+├─code
+│  ├─config
+│  │      dbconfig.php     --数据库配置文件
+│  │
+│  └─library
+│      │  App.php
+│      │  Crawl.php
+│      │  CrawlCallback.php
+│      │  Import.php
+│      │  Loader.php
+│      │
+│      └─db
+│              MysqlPDO.php
+│
+├─data                  --下载网页数据
+└─tmp
