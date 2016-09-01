@@ -4,7 +4,7 @@ namespace library;
 class Loader
 {
     public static function autoload($class){
-        $file = realpath(LIB_PATH.'../'.$class.'.php');
+        $file = realpath(ROOT_PATH.'code/'.str_replace('\\','/', $class).'.php');
         if(!$file){
             throw new \Exception($class.'class is exists');
             return false;
