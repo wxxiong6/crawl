@@ -23,8 +23,10 @@ class Import
                 }
                 echo "intall succeed!";
      }
+    
 	/**
-	* 
+	* 下载列表页面
+    * @param int $siteId 
 	*/
     public function listWrite($siteId){
 		
