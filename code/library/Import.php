@@ -7,6 +7,22 @@ class Import
     public function __construct($db){
         $this->db = $db;
     }
+    
+    /**
+    * 程序安装安装
+    */
+     public static function install(){
+                if(file_exists(DATA_PATH)){
+                        mkdir(DATA_PATH, 0775, true);
+                }
+                if(file_exists(TEP_PATH)){
+                        mkdir(TEP_PATH, 0775, true);
+                }
+                if(file_exists(LOG_PATH)){
+                                mkdir(LOG_PATH, 0775, true);
+                }
+                echo "intall succeed!";
+     }
 
     public function listWrite($siteId){
         $row = $this->db->find('setting',array('id'=>$siteId));
