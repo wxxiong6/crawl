@@ -51,7 +51,6 @@ class CrawlCallback
     public static function listWrite($row, $db, $v){
         if (empty($v['content'])) continue;
 
-        $row['item_rule_a'] = '#<a\s+target\=\"_blank\"\s+href\=\"(.*)\"#iUs';
         preg_match_all($row['item_rule_a'], $v['content'], $match);
         $filename = $row['project'].'/detail.txt';
         if(empty($match[1])){
