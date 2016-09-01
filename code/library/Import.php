@@ -26,13 +26,13 @@ class Import
 
     public function listWrite($siteId){
         $row = $this->db->find('setting',array('id'=>$siteId));
-        echo "载入配置文件 \n";
+        echo "loader config file \n";
         if(empty($row['cur_page']) && empty($row['total_page'])){
-            throw new Exception('cur_page， total_page 配置错误');
+            throw new Exception('cur_page， total_page config');
             return false;
         }
         if ($row['total_page'] <= $row['cur_page']){
-            echo "没有要处理的数据 \n";
+            echo "not data \n";
             return false;
         }
         for ($i = $row['cur_page']; $i<=$row['total_page']; $i++){
@@ -94,17 +94,5 @@ class Import
     }
 
 
-    function rrmdir($dir) {
-        if (is_dir($dir)) {
-            $objects = scandir($dir);
-            foreach ($objects as $object) {
-                if ($object != "." && $object != "..") {
-                    if (filetype($dir."/".$object) == "dir") rrmdir($dir."/".$object); else unlink($dir."/".$object);
-                }
-            }
-            reset($objects);
-            rmdir($dir);
-        }
-    }
 }
 
