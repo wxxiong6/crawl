@@ -31,7 +31,7 @@ class Import
             throw new Exception('cur_page， total_page config');
             return false;
         }
-        if ($row['total_page'] <= $row['cur_page']){
+        if ($row['total_page'] < $row['cur_page']){
             echo "not data \n";
             return false;
         }
