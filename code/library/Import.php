@@ -23,9 +23,9 @@ class Import
                 }
                 echo "intall succeed!";
      }
-/*
-* 就这样
-*/
+	/**
+	* 
+	*/
     public function listWrite($siteId){
 		
         $row = $this->db->find('setting',array('id'=>$siteId));
