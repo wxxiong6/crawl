@@ -1,4 +1,11 @@
 php爬虫相关函数
+程序只支持CLI
+
+程序相关功能
+1.安装 php index.php install
+2.执行 php index.php run 1
+3.清除项目数据 php index.php clear
+
 
 完整代码目录
 │  crwal.sql    --数据库脚本
