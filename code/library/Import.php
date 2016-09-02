@@ -36,39 +36,44 @@ class Import
 
     /**
      * 下载列表页面
-     * 
-     * @param int $siteId            
+     *
+     * @param int $siteId
      */
     public function listWrite($siteId)
     {
         $row = $this->db->find('setting', array(
             'id' => $siteId
         ));
+
         echo "loader config file \n";
-        if (empty($row['cur_page']) && empty($row['total_page'])) {
+        if (!isset($row['cur_page'])  || empty($row['total_page'])) {
             throw new Exception('cur_page， total_page config');
             return false;
         }
+
+
         if ($row['total_page'] < $row['cur_page']) {
             echo "not data \n";
             return false;
         }
+
+        $siteId = $row['id'];
+
         for ($i = $row['cur_page']; $i <= $row['total_page']; $i ++) {
-            $url = str_replace('[PAGE_NUM]', $i, $row['url']);
-            $result = \library\Crawl::write($url, $row['project'] . '/list.txt');
-            if (empty($result)) {
-                continue;
-            }
-            $data[] = array(
-                'url' => $url,
-                'filesize' => $result,
-                'site_id' => $row['id'],
-                'type' => 1
-            );
+            $urlArr[$i]['url'] = str_replace('[PAGE_NUM]', $i, $row['url']);
         }
-        $this->db->insertAll('url', $data);
+
+        $result = \library\Crawl::write($urlArr, $row['project'] . '/list.txt');
+
+        if(empty($result)){
+            throw new \Exception("not data !");
+            return false;
+        }
+
+        $this->insertUrl($result, $siteId);
+
         return $this->db->update('setting', array(
-            'id' => $row['id']
+            'id' => $siteId
         ), array(
             'cur_page' => $i - 1
         ));
@@ -76,8 +81,8 @@ class Import
 
     /**
      * 匹配列表页面内内容页面URL
-     * 
-     * @param int $siteId            
+     *
+     * @param int $siteId
      * @return boolean
      */
     public function listRead($siteId)
@@ -92,8 +97,8 @@ class Import
 
     /**
      * 匹配内容页面相关内容
-     * 
-     * @param int $siteId            
+     *
+     * @param int $siteId
      * @return boolean
      */
     public function detailRead($siteId)
@@ -111,8 +116,8 @@ class Import
 
     /**
      * 清除项目数据
-     * 
-     * @param int $siteId            
+     *
+     * @param int $siteId
      * @throws \Exception
      * @return boolean
      */
@@ -144,6 +149,24 @@ class Import
             exec("rm -rf {$path}", $output);
         }
         echo "[succeed] clear {$row['project']} " . \var_export($output, true) . " \n";
+    }
+
+    /**
+     * 写入url表
+     * @param array $data
+     * @param int $siteId
+     */
+     public  function insertUrl($data, $siteId){
+        $result = [];
+        foreach ($data as $v){
+            $result[] = array(
+                'url'      => $v['url'],
+                'filesize' => $v['filesize'],
+                'site_id'  => $siteId,
+                'type'     => 1
+            );
+        }
+        return $this->db->insertAll('url', $result);
     }
 }
 

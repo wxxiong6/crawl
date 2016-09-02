@@ -6,10 +6,10 @@ class CrawlCallback
 
     /**
      * 写入库
-     * 
-     * @param unknown $row            
-     * @param unknown $db            
-     * @param unknown $v            
+     *
+     * @param unknown $row
+     * @param unknown $db
+     * @param unknown $v
      */
     public static function detailWrite($row, $db, $v)
     {
@@ -30,7 +30,7 @@ class CrawlCallback
                     $data[$config['field']] = trim(strip_tags(htmlspecialchars_decode($match[1]), $config['allowable_tags']));
                 }
             }
-            
+
             $dataDetail[] = array(
                 'data_id' => $dataId,
                 'site_id' => $row['id'],
@@ -38,7 +38,7 @@ class CrawlCallback
                 'value' => isset($data[$config['field']]) ? $data[$config['field']] : ''
             );
         }
-        
+
         $set = array(
             'site_id' => $row['id'],
             'url' => $v['url'],
@@ -56,25 +56,35 @@ class CrawlCallback
     {
         if (empty($v['content']))
             continue;
-        
+
         preg_match_all($row['item_rule_a'], $v['content'], $match);
         $filename = $row['project'] . '/detail.txt';
         if (empty($match[1])) {
-            throw new \Exception('not match: url:' . trim($v['url']) . $row['item_rule_a']);
+           echo ('not match: url:' . trim($v['url']) . $row['item_rule_a']);
             return false;
         }
-        foreach ($match[1] as $v2) {
-            $result = \library\Crawl::write($v2, $filename);
-            if ($result) {
-                $data = array(
-                    'url' => $v2,
-                    'filesize' => $result,
-                    'site_id' => $row['id'],
-                    'type' => 2
-                );
-                $db->insert('url', $data);
-            }
+        $urlArr = [];
+        foreach ($match[1] as $k2=>$v2) {
+            $urlArr[$k2]['url'] = $v2;
         }
+
+        $result = \library\Crawl::write($urlArr, $filename);
+        if(empty($result)){
+            echo("not data !");
+            return false;
+        }
+        $data = [];
+        foreach ($result as $v){
+            $data[] = array(
+                'url'      => $v['url'],
+                'filesize' => $v['filesize'],
+                'site_id'  => $row['id'],
+                'type'     => 1
+            );
+        }
+
+        return $db->insertAll('url', $data);
+
     }
 }
 
