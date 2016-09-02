@@ -51,7 +51,7 @@ class MysqlPDO
     {
         if (! class_exists("PDO"))
             throw new PDOException('PHP环境未安装PDO函数库！');
-
+        
         $this->_config = $config;
         if (! is_array($config)) {
             throw new PDOException('Adapter parameters must be in an array !');
@@ -67,23 +67,23 @@ class MysqlPDO
         if (! isset($this->_config['host'])) {
             throw new PDOException("HOTS不能为空");
         }
-
+        
         if (! isset($this->_config['user'])) {
             throw new PDOException("用户名不能为空");
         }
-
+        
         if (! isset($this->_config['password'])) {
             throw new PDOException("密码不能为空");
         }
-
+        
         if (! isset($this->_config['tablePrefix'])) {
             throw new PDOException("tablePrefix 表前缀不存在");
         }
-
+        
         if (! isset($this->_config['charset'])) {
             $this->_config['charset'] = 'utf8';
         }
-
+        
         try {
             $this->conn = new PDO($this->_config['host'], $this->_config['user'], $this->_config['password'], array(
                 PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->_config['charset']}"
@@ -91,13 +91,15 @@ class MysqlPDO
         } catch (PDOException $e) {
             throw new PDOException($e->getMessage());
         }
-
+        
         return $this;
     }
 
     /**
      * 从数据表中查找一条记录
-     * @param     $table
+     * 
+     * @param
+     *            $table
      * @param
      *            conditions 查找条件，数组array("字段名"=>"查找值")或字符串，
      *            请注意在使用字符串时将需要开发者自行使用escape来对输入值进行过滤
@@ -117,7 +119,9 @@ class MysqlPDO
 
     /**
      * 从数据表中查找记录
-     * @param     $table
+     * 
+     * @param
+     *            $table
      * @param
      *            conditions 查找条件，数组array("字段名"=>"查找值")或字符串，
      *            请注意在使用字符串时将需要开发者自行使用escape来对输入值进行过滤
@@ -147,7 +151,7 @@ class MysqlPDO
         if (null != $sort) {
             $sort = "ORDER BY {$sort}";
         }
-
+        
         $sql = "SELECT {$fields} FROM {$this->_config['tablePrefix']}{$table} {$where} {$sort}";
         if (null != $limit)
             $sql = $this->setlimit($sql, $limit);
@@ -184,7 +188,7 @@ class MysqlPDO
         }
         $col = join(',', $cols);
         $val = join(',', $vals);
-
+        
         $sql = "INSERT INTO $table ({$col}) VALUES ({$val})";
         if (FALSE != $this->exec($sql)) { // 获取当前新增的ID
             if ($newinserid = $this->lastInsertId()) {
@@ -224,9 +228,9 @@ class MysqlPDO
                 $fields[] = $key;
             }
         }
-
+        
         $sql .= ' (`' . implode('`,`', $fields) . '`) VALUES ';
-
+        
         if ($flag) { // 二维数组
             $sql .= implode(',', $values) . ';';
         } else { // 一维数组
@@ -437,15 +441,15 @@ class MysqlPDO
     {
         $count = intval($count);
         if ($count <= 0) {
-
+            
             throw new Exception("LIMIT argument count=$count is not valid");
         }
-
+        
         $offset = intval($offset);
         if ($offset < 0) {
             throw new Exception("LIMIT argument offset=$offset is not valid");
         }
-
+        
         $sql .= " LIMIT $count";
         if ($offset > 0) {
             $sql .= " OFFSET $offset";

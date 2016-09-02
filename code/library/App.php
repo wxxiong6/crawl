@@ -4,8 +4,7 @@ namespace library;
 class App
 {
 
-       public static function run(){
-
-       }
+    public static function run()
+    {}
 }
 
