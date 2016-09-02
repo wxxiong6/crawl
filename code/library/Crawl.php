@@ -210,7 +210,7 @@ class Crawl
                 CURLOPT_USERAGENT => "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36",
                 CURLOPT_FOLLOWLOCATION => 1,
                 CURLOPT_TIMEOUT => 30,    //秒
-                CURLOPT_CONNECTTIMEOUT => 25,  //秒
+                CURLOPT_CONNECTTIMEOUT => 25
             );
 
             // add curl options to each handle
