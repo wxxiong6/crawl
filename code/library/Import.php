@@ -31,7 +31,7 @@ class Import
             mkdir(LOG_PATH, 0775, true);
         }
 
-        $sqlFile = ROOT_PATH.'crwal.sql';
+        $sqlFile = ROOT_PATH.'crawl.sql';
         if(!file_exists($sqlFile))
         {
              exit("SQL file don't exists");
