@@ -30,6 +30,24 @@ class Import
         if (! file_exists(LOG_PATH)) {
             mkdir(LOG_PATH, 0775, true);
         }
+
+        $sqlFile = ROOT_PATH.'crwal.sql';
+        if(!file_exists($sqlFile))
+        {
+             exit("SQL file don't exists");
+        }
+        $fileContent = file_get_contents($sqlFile);
+        $sqlArr = explode( ';' , $fileContent );
+        foreach($sqlArr as $k => $sql)
+        {
+          //   $this->db->exec($sql);
+        }
+        $dbConfigFile = ROOT_PATH . '/code/config/dbconfig.php';
+        $config = include $dbConfigFile;
+        $config['host'] .= 'dbname='.DB_NAME.';';
+        $dbConfig = '<?php return '.var_export($config, true).';';
+        file_put_contents($dbConfigFile, $dbConfig);
+        echo "install databases succeed ! \n";
         touch(DATA_PATH . 'install.lock');
         echo "intall succeed !";
     }
@@ -139,6 +157,7 @@ class Import
             'site_id' => $siteId
         ));
         $path = realpath(ROOT_PATH . DIRECTORY_SEPARATOR . 'data/' . $row['project']);
+
         if (! $path) {
             throw new \Exception('dir not exists:' . ROOT_PATH . DIRECTORY_SEPARATOR . 'data/' . $row['project']);
             return false;
