@@ -52,18 +52,20 @@ CREATE TABLE `data_detail` (
 
 /*Table structure for table `image` */
 
-DROP TABLE IF EXISTS `image`;
+DROP TABLE IF EXISTS `data_image`;
 
-CREATE TABLE `image` (
+CREATE TABLE `data_image` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `site_id` MEDIUMINT(8) UNSIGNED NOT NULL DEFAULT '0' COMMENT '站点id',
   `data_id` CHAR(32) DEFAULT '0' COMMENT '数据id',
   `ext` VARCHAR(10) NOT NULL DEFAULT '' COMMENT '图片格式',
+  `page_url` VARCHAR(255) DEFAULT '' COMMENT '页面URL',
   `url` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '下载本地图片',
   `source_url` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '源网站图url',
   `status` TINYINT(2) UNSIGNED NOT NULL DEFAULT '1' COMMENT '状态 1未处理，2处理',
   PRIMARY KEY (`id`)
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8 COMMENT='图片表';
+;
 
 /*Data for the table `image` */
 
