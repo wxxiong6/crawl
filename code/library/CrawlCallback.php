@@ -7,9 +7,9 @@ class CrawlCallback
     /**
      * 写入库
      *
-     * @param unknown $row
-     * @param unknown $db
-     * @param unknown $v
+     * @param array $row
+     * @param obj $db
+     * @param array $v
      */
     public static function detailWrite($row, $db, $v)
     {
@@ -26,9 +26,33 @@ class CrawlCallback
                 // 是否要匹配图片
                 if ($config['match_img'] == '2') {
                     $data[$config['field']] = trim(strip_tags(htmlspecialchars_decode($match[1]), $config['allowable_tags']));
+
+                    preg_match_all('#<img.+src=\"?([^"].+\.?(jpg|gif|bmp|bnp|png|\"|\s)).+>#iU', $data[$config['field']], $imgMatch);
+                    if(!empty($imgMatch[1])){
+                     //print_r($imgMatch);
+                        foreach($imgMatch[1] as $keyimgSrc => $imgSrc)
+                        {
+                            $imgSrc = rtrim(substr($imgSrc,0,300), '"');
+                            $ext    = empty($imgMatch[2][$keyimgSrc])?strtolower($imgMatch[2][$keyimgSrc]):'jpg';
+                            $dataImg[] = array(
+                                'data_id' => $dataId,
+                                'site_id' => $row['id'],
+                                'ext'     => $ext,
+                                'page_url'=> $v['url'],
+                                'url'     => self::imgUrl($imgSrc, $ext),
+                                'source_url' => $imgSrc,
+                            );
+                        }
+
+                    }
+
+
                 } else {
                     $data[$config['field']] = trim(strip_tags(htmlspecialchars_decode($match[1]), $config['allowable_tags']));
                 }
+            } else
+            {
+                echo "[match Notice] not match: url: {$config['rule']} \n";
             }
 
             $dataDetail[] = array(
@@ -40,14 +64,19 @@ class CrawlCallback
         }
 
         $set = array(
-            'site_id' => $row['id'],
-            'url' => $v['url'],
-            'data_id' => $dataId,
-            'title' => isset($data['title']) ? $data['title'] : '',
+            'site_id'     => $row['id'],
+            'url'         => $v['url'],
+            'data_id'     => $dataId,
+            'title'       => isset($data['title']) ? $data['title'] : '',
             'create_time' => date("Y-m-d H:i:s")
         );
+        //$result  = false;
         $result = $db->insert('data', $set);
         if ($result) {
+
+            if(!empty($dataImg))
+            $db->insertAll('data_image', $dataImg);
+
             $db->insertAll('data_detail', $dataDetail);
         }
     }
@@ -60,7 +89,7 @@ class CrawlCallback
         preg_match_all($row['item_rule_a'], $v['content'], $match);
         $filename = $row['project'] . '/detail.txt';
         if (empty($match[1])) {
-           echo ('not match: url:' . trim($v['url']) . $row['item_rule_a']);
+            echo  "[match Notice] not match: url: {$row['item_rule_a']} \n";
             return false;
         }
         $urlArr = [];
@@ -85,6 +114,18 @@ class CrawlCallback
 
         return $db->insertAll('url', $data);
 
+    }
+
+    /**
+     * 生成图片URL
+     * @param int $id
+     * @param int $ext 后娺
+     */
+    public static function imgUrl($id, $ext){
+        $md5_id = md5($id);
+        $path   = substr($md5_id, 0,2);
+        $path1  = substr($md5_id, 2,2);
+        return  '/' .$path . '/' . $path1 . '/' . $md5_id .'.'. $ext;
     }
 }
 
