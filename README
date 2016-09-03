@@ -1,5 +1,12 @@
-php爬虫相关函数
+php爬虫系统
 程序只支持CLI
+安装程序
+1.修改dbconfig.php成自己数据库配置
+2.执行 php index.php install
+安装完成后，需要添加来源站点及提取规则，setting, setting 表。
+
+添加完使用来执行  php index.php run 1   (参数是 setting 表id)
+
 
 程序相关功能
 1.安装 php index.php install
@@ -8,7 +15,7 @@ php爬虫相关函数
 
 
 完整代码目录
-│  crwal.sql    --数据库脚本
+│  crawl.sql    --数据库脚本
 │  index.php    --入口文件
 │  LICENSE
 │  README
