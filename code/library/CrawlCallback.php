@@ -32,7 +32,8 @@ class CrawlCallback
                      //print_r($imgMatch);
                         foreach($imgMatch[1] as $keyimgSrc => $imgSrc)
                         {
-                            $imgSrc = rtrim(substr($imgSrc,0,300), '"');
+                            $imgSrc = trim(substr($imgSrc,0,300), '"');
+                            if(empty($imgSrc)) continue;
                             $ext    = empty($imgMatch[2][$keyimgSrc])?strtolower($imgMatch[2][$keyimgSrc]):'jpg';
                             $dataImg[] = array(
                                 'data_id' => $dataId,
