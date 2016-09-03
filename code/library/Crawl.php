@@ -48,6 +48,7 @@ class Crawl
             mkdir($path, 0775, true);
         }
 
+        $filename = self::$dirPath . '/' . $filename;
 
         /**
          * 获取网页数据
@@ -75,15 +76,15 @@ class Crawl
             $data['url']          = str_pad($url, 255);
             $data['content_leng'] = pack("L", $filesize);
             $data['content']      = $con;
-            $writeResult = file_put_contents(self::$dirPath . '/' . $filename, $data, FILE_APPEND | LOCK_EX);
 
+            $writeResult          = file_put_contents($filename, $data, FILE_APPEND | LOCK_EX);
             $result[$k]['filesize']   = $filesize;
             $result[$k]['url']        = $url;
 
             if ($writeResult) {
-                echo "[succeed] {$url} \n";
+                echo "[download succeed] {$url} \n";
             } else {
-                echo "[defeated] {$url} \n";
+                echo "[download defeated] {$url} \n";
             }
         }
         return $result;
@@ -116,31 +117,30 @@ class Crawl
         }
         $handle = fopen($filename, "rb");
         $data = array();
-        for ($i = 0;; $i ++) {
-            if (feof($handle)) {
-                break;
-            }
-            $data[$i]['url'] = fread($handle, 255);
-            $contentLen = fread($handle, 4);
+         $i = 0;
+        while (!feof($handle)) {
+
+            $data[$i]['url'] = trim(fread($handle, 255));
+            $contentLen      = fread($handle, 4);
             if (empty($contentLen)) {
-                echo "error: file is not normal termination! 01 \n";
+                echo  $data[$i]['url']." error: file is not normal termination! 01 \n";
                 break;
             }
             $aConLeng = unpack("Ldata", $contentLen);
-            $conLeng = $aConLeng['data'];
+            $conLeng  = $aConLeng['data'];
             if ($conLeng == 0) {
                 echo "error: file is not normal termination! 02  \n";
                 break;
             }
-
             $data[$i]['content'] = fread($handle, $conLeng);
             call_user_func_array($callback, array(
                 $row,
                 $db,
                 $data[$i]
             ));
-            // echo "[succeed] {$data[$i]['url']} \n";
+            echo "[match succeed] {$data[$i]['url']} \n";
             unset($data[$i]);
+            $i++;
         }
         return true;
     }
@@ -209,7 +209,7 @@ class Crawl
                 CURLOPT_RETURNTRANSFER => 1,
                 CURLOPT_USERAGENT => "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36",
                 CURLOPT_FOLLOWLOCATION => 1,
-                CURLOPT_TIMEOUT => 30,    //秒
+                CURLOPT_TIMEOUT => 60,    //秒
                 CURLOPT_CONNECTTIMEOUT => 25
             );
 
