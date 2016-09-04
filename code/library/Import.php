@@ -40,7 +40,7 @@ class Import
         $sqlArr = explode( ';' , $fileContent );
         foreach($sqlArr as $k => $sql)
         {
-          //   $this->db->exec($sql);
+             $this->db->exec($sql);
         }
         $dbConfigFile = ROOT_PATH . '/code/config/dbconfig.php';
         $config = include $dbConfigFile;
