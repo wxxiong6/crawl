@@ -51,7 +51,7 @@ class MysqlPDO
     {
         if (! class_exists("PDO"))
             throw new PDOException('PHP环境未安装PDO函数库！');
-        
+
         $this->_config = $config;
         if (! is_array($config)) {
             throw new PDOException('Adapter parameters must be in an array !');
@@ -67,23 +67,23 @@ class MysqlPDO
         if (! isset($this->_config['host'])) {
             throw new PDOException("HOTS不能为空");
         }
-        
+
         if (! isset($this->_config['user'])) {
             throw new PDOException("用户名不能为空");
         }
-        
+
         if (! isset($this->_config['password'])) {
             throw new PDOException("密码不能为空");
         }
-        
+
         if (! isset($this->_config['tablePrefix'])) {
             throw new PDOException("tablePrefix 表前缀不存在");
         }
-        
+
         if (! isset($this->_config['charset'])) {
             $this->_config['charset'] = 'utf8';
         }
-        
+
         try {
             $this->conn = new PDO($this->_config['host'], $this->_config['user'], $this->_config['password'], array(
                 PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->_config['charset']}"
@@ -91,13 +91,13 @@ class MysqlPDO
         } catch (PDOException $e) {
             throw new PDOException($e->getMessage());
         }
-        
+
         return $this;
     }
 
     /**
      * 从数据表中查找一条记录
-     * 
+     *
      * @param
      *            $table
      * @param
@@ -119,7 +119,7 @@ class MysqlPDO
 
     /**
      * 从数据表中查找记录
-     * 
+     *
      * @param
      *            $table
      * @param
@@ -130,10 +130,11 @@ class MysqlPDO
      * @param
      *            fields 返回的字段范围，默认为返回全部字段的值
      * @param
-     *            limit 返回的结果数量限制，等同于“LIMIT ”，如$limit = " 3, 5"，即是从第3条记录（从0开始计算）开始获取，共获取5条记录
+     *
      *            如果limit值只有一个数字，则是指代从0条记录开始。
+     *  @param    offset
      */
-    public function findAll($table, $conditions = null, $sort = null, $fields = null, $limit = null)
+    public function findAll($table, $conditions = null, $sort = null, $fields = null, $limit = null , $offset = null)
     {
         $where = "";
         $fields = empty($fields) ? "*" : $fields;
@@ -151,10 +152,11 @@ class MysqlPDO
         if (null != $sort) {
             $sort = "ORDER BY {$sort}";
         }
-        
+
         $sql = "SELECT {$fields} FROM {$this->_config['tablePrefix']}{$table} {$where} {$sort}";
-        if (null != $limit)
-            $sql = $this->setlimit($sql, $limit);
+        if (null != $limit){
+            $sql = $this->setlimit($sql, $limit, $offset);
+        }
         return $this->getArray($sql);
     }
 
@@ -188,7 +190,7 @@ class MysqlPDO
         }
         $col = join(',', $cols);
         $val = join(',', $vals);
-        
+
         $sql = "INSERT INTO $table ({$col}) VALUES ({$val})";
         if (FALSE != $this->exec($sql)) { // 获取当前新增的ID
             if ($newinserid = $this->lastInsertId()) {
@@ -228,9 +230,9 @@ class MysqlPDO
                 $fields[] = $key;
             }
         }
-        
+
         $sql .= ' (`' . implode('`,`', $fields) . '`) VALUES ';
-        
+
         if ($flag) { // 二维数组
             $sql .= implode(',', $values) . ';';
         } else { // 一维数组
@@ -436,21 +438,25 @@ class MysqlPDO
 
     /**
      * 格式化带limit的SQL语句
+     * @param string $sql
+     * @param int $limit
+     * @param number $offset
+     * @throws Exception
+     * @return string
      */
-    public function setlimit($sql, $count, $offset = 0)
+    public function setlimit($sql, $limit, $offset = 0)
     {
-        $count = intval($count);
-        if ($count <= 0) {
-            
-            throw new Exception("LIMIT argument count=$count is not valid");
+        $limit = intval($limit);
+        if ($limit <= 0) {
+            throw new Exception("LIMIT argument limit=$limit is not valid");
         }
-        
+
         $offset = intval($offset);
         if ($offset < 0) {
             throw new Exception("LIMIT argument offset=$offset is not valid");
         }
-        
-        $sql .= " LIMIT $count";
+
+        $sql .= " LIMIT $limit";
         if ($offset > 0) {
             $sql .= " OFFSET $offset";
         }
