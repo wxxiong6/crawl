@@ -42,7 +42,7 @@ class MysqlPDO
     /**
      * 表链接
      */
-    public $conn;
+    private static $conn = NULL;
 
     /**
      * 构造函数
@@ -56,13 +56,12 @@ class MysqlPDO
         if (! is_array($config)) {
             throw new PDOException('Adapter parameters must be in an array !');
         }
-        $this->conn();
     }
 
     /**
      * 数据库连接
      */
-    private function conn()
+    private function  conn()
     {
         if (! isset($this->_config['host'])) {
             throw new PDOException("HOTS不能为空");
@@ -83,16 +82,14 @@ class MysqlPDO
         if (! isset($this->_config['charset'])) {
             $this->_config['charset'] = 'utf8';
         }
-
+        $this->tablePrefix = $this->_config['tablePrefix'];
         try {
-            $this->conn = new PDO($this->_config['host'], $this->_config['user'], $this->_config['password'], array(
+            self::$conn = new PDO($this->_config['host'], $this->_config['user'], $this->_config['password'], array(
                 PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->_config['charset']}"
             ));
         } catch (PDOException $e) {
             throw new PDOException($e->getMessage());
         }
-
-        return $this;
     }
 
     /**
@@ -152,8 +149,8 @@ class MysqlPDO
         if (null != $sort) {
             $sort = "ORDER BY {$sort}";
         }
-
-        $sql = "SELECT {$fields} FROM {$this->_config['tablePrefix']}{$table} {$where} {$sort}";
+        $table = $this->getTableNmae($table);
+        $sql = "SELECT {$fields} FROM {$table} {$where} {$sort}";
         if (null != $limit){
             $sql = $this->setlimit($sql, $limit, $offset);
         }
@@ -293,7 +290,7 @@ class MysqlPDO
      */
     public function getLastSql()
     {
-        return end($this->_arrSql);
+        return array_pop($this->_arrSql);
     }
 
     /**
@@ -318,14 +315,15 @@ class MysqlPDO
             $join = array();
             foreach ($conditions as $key => $condition) {
                 $condition = $this->escape($condition);
-                $join[] = "{$key} = {$condition}";
+                $join[] = "`{$key}` = {$condition}";
             }
             $where = "WHERE " . join(" AND ", $join);
         } else {
             if (null != $conditions)
                 $where = "WHERE " . $conditions;
         }
-        $sql = "SELECT COUNT(*) AS SP_COUNTER FROM {$this->_config['tablePrefix']}{$table} {$where}";
+        $table = $this->getTableNmae($table);
+        $sql = "SELECT COUNT(*) AS SP_COUNTER FROM {$table} {$where}";
         $result = $this->getArray($sql);
         return $result[0]['SP_COUNTER'];
     }
@@ -349,7 +347,7 @@ class MysqlPDO
             $join = array();
             foreach ($conditions as $key => $condition) {
                 $condition = $this->escape($condition);
-                $join[] = "{$key} = {$condition}";
+                $join[] = "`{$key}` = {$condition}";
             }
             $where = "WHERE " . join(" AND ", $join);
         } else {
@@ -358,10 +356,11 @@ class MysqlPDO
         }
         foreach ($row as $key => $value) {
             $value = $this->escape($value);
-            $vals[] = "{$key} = {$value}";
+            $vals[] = "`{$key}` = {$value}";
         }
         $values = join(", ", $vals);
-        $sql = "UPDATE {$this->_config['tablePrefix']}{$table} SET {$values} {$where}";
+        $table = $this->getTableNmae($table);
+        $sql = "UPDATE  SET {$values} {$where}";
         return $this->exec($sql);
     }
 
@@ -390,6 +389,7 @@ class MysqlPDO
      */
     public function deleteByPk($table, $pk)
     {
+        $table = $this->getTableNmae($table);
         return $this->delete($table, array(
             'id' => $pk
         ));
@@ -403,7 +403,7 @@ class MysqlPDO
      */
     private function __prepera_format($table, $rows)
     {
-        $columns = $this->getTable($table);
+        $columns = $this->getTableInfo($table);
         $newcol = array();
         foreach ($columns as $col) {
             $newcol[$col['Field']] = $col['Field'];
@@ -420,8 +420,8 @@ class MysqlPDO
     public function getArray($sql)
     {
         $this->_arrSql[] = $sql;
-        if (! $rows = $this->conn->prepare($sql)) {
-            $poderror = $this->conn->errorInfo();
+        if (! $rows = $this->getConn()->prepare($sql)) {
+            $poderror = $this->getConn()->errorInfo();
             throw new Exception("{$sql} 执行错误: " . $poderror[2]);
         }
         $rows->execute();
@@ -433,7 +433,7 @@ class MysqlPDO
      */
     public function lastInsertId()
     {
-        return $this->conn->lastInsertId();
+        return $this->getConn()->lastInsertId();
     }
 
     /**
@@ -472,29 +472,38 @@ class MysqlPDO
     public function exec($sql)
     {
         $this->_arrSql[] = $sql;
-        $result = $this->conn->exec($sql);
+        $result = $this->getConn()->exec($sql);
         if (FALSE !== $result) {
             $this->num_rows = $result;
             return $result;
         } else {
-            $poderror = $this->conn->errorInfo();
-            throw new Exception("{$sql} 执行错误: " . $poderror[2]);
+            $poderror = $this->getConn()->errorInfo();
+            throw new Exception("{$sql} Execution error: " . $poderror[2]);
         }
         return false;
     }
 
     /**
      * 获取数据表结构
-     *
      * @param
      *            tbl_name 表名称
      */
-    public function getTable($tbl_name)
+    public function getTableInfo($table)
     {
-        $tableInfo = $this->getArray("DESCRIBE {$tbl_name}");
+        $table = $this->getTableNmae($table);
+        $tableInfo = $this->getArray("DESCRIBE {$table}");
         if (empty($tableInfo))
-            throw new Exception($tbl_name . '不存在');
+            throw new PDOException('The' . $table . 'not exists');
         return $tableInfo;
+    }
+
+   /**
+    * 获取表名
+    * @param string $tbl_name
+    * @return string
+    */
+    public function getTableNmae($table){
+        return "`{$this->tablePrefix}{$table}`";
     }
 
     /**
@@ -515,7 +524,7 @@ class MysqlPDO
             return (float) $value;
         if (@get_magic_quotes_gpc())
             $value = stripslashes($value);
-        return $this->conn->quote($value);
+        return $this->getConn()->quote($value);
     }
 
     /**
@@ -523,7 +532,7 @@ class MysqlPDO
      */
     public function __destruct()
     {
-        $this->conn = null;
+        self::$conn = null;
     }
 
     /**
@@ -531,6 +540,9 @@ class MysqlPDO
      */
     public function getConn()
     {
-        return $this->conn;
+        if(is_null(self::$conn)){
+            $this->conn();
+        }
+        return self::$conn;
     }
 }
