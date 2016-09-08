@@ -66,27 +66,28 @@ class MysqlPDO
         if (! isset($this->_config['host'])) {
             throw new PDOException("HOTS不能为空");
         }
-
         if (! isset($this->_config['user'])) {
             throw new PDOException("用户名不能为空");
         }
-
         if (! isset($this->_config['password'])) {
             throw new PDOException("密码不能为空");
         }
-
         if (! isset($this->_config['tablePrefix'])) {
             throw new PDOException("tablePrefix 表前缀不存在");
         }
-
         if (! isset($this->_config['charset'])) {
             $this->_config['charset'] = 'utf8';
         }
         $this->tablePrefix = $this->_config['tablePrefix'];
         try {
-            self::$conn = new PDO($this->_config['host'], $this->_config['user'], $this->_config['password'], array(
-                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->_config['charset']}"
-            ));
+            self::$conn = new PDO(
+                $this->_config['host'], 
+                $this->_config['user'], 
+                $this->_config['password'], 
+                array(
+                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->_config['charset']}"
+                )
+            );
         } catch (PDOException $e) {
             throw new PDOException($e->getMessage());
         }
@@ -139,7 +140,7 @@ class MysqlPDO
             $join = array();
             foreach ($conditions as $key => $condition) {
                 $condition = $this->escape($condition);
-                $join[] = "{$key} = {$condition}";
+                $join[] = "`{$key}` = {$condition}";
             }
             $where = "WHERE " . join(" AND ", $join);
         } else {
@@ -185,10 +186,10 @@ class MysqlPDO
             $cols[] = $key;
             $vals[] = $this->escape($value);
         }
-        $col = join(',', $cols);
-        $val = join(',', $vals);
-
-        $sql = "INSERT INTO $table ({$col}) VALUES ({$val})";
+        $col = '(`' . implode('`,`', $cols) . '`)';
+        $val = implode(',', $vals);
+        $table = $this->getTableNmae($table);
+        $sql = "INSERT INTO $table {$col} VALUES ({$val})";
         if (FALSE != $this->exec($sql)) { // 获取当前新增的ID
             if ($newinserid = $this->lastInsertId()) {
                 return $newinserid;
@@ -215,6 +216,7 @@ class MysqlPDO
      */
     public function createInsert($table, array $data)
     {
+        $table = $this->getTableNmae($table);
         $sql = 'INSERT INTO ' . $table;
         $flag = false; // 是否是二维数组
         foreach ($data as $key => $val) {
@@ -251,14 +253,15 @@ class MysqlPDO
             $join = array();
             foreach ($conditions as $key => $condition) {
                 $condition = $this->escape($condition);
-                $join[] = "{$key} = {$condition}";
+                $join[] = "`{$key}` = {$condition}";
             }
             $where = "WHERE ( " . join(" AND ", $join) . ")";
         } else {
             if (null != $conditions)
                 $where = "WHERE ( " . $conditions . ")";
         }
-        $sql = "DELETE FROM {$this->_config['tablePrefix']}{$table} {$where}";
+        $table = $this->getTableNmae($table);
+        $sql = "DELETE FROM {$table} {$where}";
         return $this->exec($sql);
     }
 
