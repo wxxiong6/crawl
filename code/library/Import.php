@@ -128,8 +128,6 @@ class Import
         $row = $this->db->find('setting', array(
             'id' => $siteId
         ));
-        var_dump($row);
-        exit;
         $row['data'] = $this->db->findAll('setting_content', array(
             'site_id' => $siteId
         ));
