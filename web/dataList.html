@@ -5,8 +5,7 @@
     <title>Bootstrap Table Examples</title>
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/bootstrap-table/src/bootstrap-table.css">
-    <link rel="stylesheet" href="//rawgit.com/vitalets/x-editable/master/dist/bootstrap3-editable/css/bootstrap-editable.css">
-    <link rel="stylesheet" href="assets/examples.css">
+        <link rel="stylesheet" href="assets/bootstrap-editable.css">
     <script src="assets/jquery.min.js"></script>
     <script src="assets/bootstrap/js/bootstrap.min.js"></script>
     <script src="ga.js"></script>
@@ -20,7 +19,7 @@
 </head>
 <body>
 <div class="container">
-    <h1>Bootstrap Table Examples <a href="https://github.com/wenzhixin/bootstrap-table-examples" class="btn btn-primary" role="button" target="_blank">Learn more &raquo;</a></h1>
+    <h1>crwal</h1>
     <div id="toolbar">
         <button id="remove" class="btn btn-danger" disabled>
             <i class="glyphicon glyphicon-remove"></i> Delete
@@ -32,15 +31,10 @@
            data-show-refresh="true"
            data-show-toggle="true"
            data-show-columns="true"
-           data-show-export="true"
-           data-detail-view="true"
-           data-detail-formatter="detailFormatter"
-           data-minimum-count-columns="2"
            data-show-pagination-switch="true"
            data-pagination="true"
            data-id-field="id"
            data-page-list="[10, 25, 50, 100, ALL]"
-           data-show-footer="true"
            data-side-pagination="server"
            data-url="data.php"
            data-response-handler="responseHandler">
@@ -134,13 +128,7 @@
         return res;
     }
 
-    function detailFormatter(index, row) {
-        var html = [];
-        $.each(row, function (key, value) {
-            html.push('<p><b>' + key + ':</b> ' + value + '</p>');
-        });
-        return html.join('');
-    }
+
 
     function operateFormatter(value, row, index) {
         return [
@@ -165,21 +153,7 @@
         }
     };
 
-    function totalTextFormatter(data) {
-        return 'Total';
-    }
 
-    function totalNameFormatter(data) {
-        return data.length;
-    }
-
-    function totalPriceFormatter(data) {
-        var total = 0;
-        $.each(data, function (i, row) {
-            total += +(row.price.substring(1));
-        });
-        return '$' + total;
-    }
 
     function getHeight() {
         return $(window).height() - $('h1').outerHeight(true);
@@ -187,11 +161,7 @@
 
     $(function () {
         var scripts = [
-                location.search.substring(1) || 'assets/bootstrap-table/src/bootstrap-table.js',
-                'assets/bootstrap-table/src/extensions/export/bootstrap-table-export.js',
-                'http://rawgit.com/hhurz/tableExport.jquery.plugin/master/tableExport.js',
-                'assets/bootstrap-table/src/extensions/editable/bootstrap-table-editable.js',
-                'http://rawgit.com/vitalets/x-editable/master/dist/bootstrap3-editable/js/bootstrap-editable.js'
+                location.search.substring(1) || 'assets/bootstrap-table/src/bootstrap-table.js'
             ],
             eachSeries = function (arr, iterator, callback) {
                 callback = callback || function () {};
