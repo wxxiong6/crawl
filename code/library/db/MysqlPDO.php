@@ -363,7 +363,7 @@ class MysqlPDO
         }
         $values = join(", ", $vals);
         $table = $this->getTableNmae($table);
-        $sql = "UPDATE  SET {$values} {$where}";
+        $sql = "UPDATE  {$table} SET {$values} {$where}";
         return $this->exec($sql);
     }
 
@@ -423,12 +423,12 @@ class MysqlPDO
     public function getArray($sql)
     {
         $this->_arrSql[] = $sql;
-        if (! $rows = $this->getConn()->prepare($sql)) {
+        if (! $sth = $this->getConn()->prepare($sql)) {
             $poderror = $this->getConn()->errorInfo();
-            throw new Exception("{$sql} 执行错误: " . $poderror[2]);
+            throw new Exception("[execution error]: " . $poderror[2] ."{$sql}");
         }
-        $rows->execute();
-        return $rows->fetchAll(PDO::FETCH_ASSOC);
+        $sth->execute();
+        return $sth->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -481,7 +481,9 @@ class MysqlPDO
             return $result;
         } else {
             $poderror = $this->getConn()->errorInfo();
-            throw new Exception("{$sql} Execution error: " . $poderror[2]);
+            if (!empty($poderror)){
+                throw new Exception("Execution error: " . $poderror[2]."{$sql}");
+            }
         }
         return false;
     }
