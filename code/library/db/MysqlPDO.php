@@ -81,9 +81,9 @@ class MysqlPDO
         $this->tablePrefix = $this->_config['tablePrefix'];
         try {
             self::$conn = new PDO(
-                $this->_config['host'], 
-                $this->_config['user'], 
-                $this->_config['password'], 
+                $this->_config['host'],
+                $this->_config['user'],
+                $this->_config['password'],
                 array(
                     PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->_config['charset']}"
                 )
@@ -148,7 +148,7 @@ class MysqlPDO
                 $where = "WHERE " . $conditions;
         }
         if (null != $sort) {
-            $sort = "ORDER BY {$sort}";
+            $sort = "ORDER BY `{$sort}`";
         }
         $table = $this->getTableNmae($table);
         $sql = "SELECT {$fields} FROM {$table} {$where} {$sort}";
