@@ -35,19 +35,27 @@ class CrawlCallback
                             $imgSrc = trim(substr($imgSrc,0,300), '"');
                             if(empty($imgSrc)) continue;
                             $ext    = empty($imgMatch[2][$keyimgSrc])?strtolower($imgMatch[2][$keyimgSrc]):'jpg';
-                            $dataImg[] = array(
+                            $dataImg[$keyimgSrc] = array(
                                 'data_id' => $dataId,
                                 'site_id' => $row['id'],
                                 'ext'     => $ext,
                                 'page_url'=> $v['url'],
-                                'url'     => self::imgUrl($imgSrc, $ext),
+                                'url'     => $row['img_dir'].self::imgUrl($imgSrc, $ext),
                                 'source_url' => $imgSrc,
                             );
+
+                            if(!empty($dataImg[$keyimgSrc]['url'])){
+                                $search[$keyimgSrc]  = $dataImg[$keyimgSrc]['source_url'];
+                                $replace[$keyimgSrc] = $row['img_url'].'/'.$dataImg[$keyimgSrc]['url'];
+                            }
                         }
 
+                        //图片替换成本地路径
+                        if(!empty($search) && !empty($replace)){
+                            $data[$config['field']] = str_replace($search, $replace, $data[$config['field']]);
+                         }
+
                     }
-
-
                 } else {
                     $data[$config['field']] = trim(strip_tags(htmlspecialchars_decode($match[1]), $config['allowable_tags']));
                 }

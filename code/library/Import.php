@@ -37,9 +37,13 @@ class Import
              exit("SQL file don't exists");
         }
         $fileContent = file_get_contents($sqlFile);
-        $sqlArr = explode( ';' , $fileContent );
+        $sqlArr = array_filter(array_map('trim', explode( ';' , $fileContent )));
+
         foreach($sqlArr as $k => $sql)
         {
+              if (empty($sql)){
+                  continue;
+              }
              $this->db->exec($sql);
         }
         $dbConfigFile = ROOT_PATH . '/code/config/dbconfig.php';
@@ -124,6 +128,8 @@ class Import
         $row = $this->db->find('setting', array(
             'id' => $siteId
         ));
+        var_dump($row);
+        exit;
         $row['data'] = $this->db->findAll('setting_content', array(
             'site_id' => $siteId
         ));
@@ -153,7 +159,7 @@ class Import
         $this->db->delete('data_detail', array(
             'site_id' => $siteId
         ));
-        $this->db->delete('image', array(
+        $this->db->delete('data_image', array(
             'site_id' => $siteId
         ));
         $path = realpath(ROOT_PATH . DIRECTORY_SEPARATOR . 'data/' . $row['project']);
