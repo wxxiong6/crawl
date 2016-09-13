@@ -148,7 +148,7 @@ class MysqlPDO
                 $where = "WHERE " . $conditions;
         }
         if (null != $sort) {
-            $sort = "ORDER BY `{$sort}`";
+            $sort = "ORDER BY {$sort}";
         }
         $table = $this->getTableNmae($table);
         $sql = "SELECT {$fields} FROM {$table} {$where} {$sort}";
