@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -64,7 +63,7 @@
                     }, {
                         title: 'title',
                         align: 'left',
-						formatter:'operateFormatter',
+						formatter:'titleFormatter',
 						field: 'title'
                     } ,
 					 {
@@ -126,19 +125,6 @@
             row.state = $.inArray(row.id, selections) !== -1;
         });
         return res;
-    }
-
-
-
-    function operateFormatter(value, row, index) {
-        return [
-            '<a class="like" href="javascript:void(0)" title="Like">',
-            '<i class="glyphicon glyphicon-heart"></i>',
-            '</a>  ',
-            '<a class="remove" href="javascript:void(0)" title="Remove">',
-            '<i class="glyphicon glyphicon-remove"></i>',
-            '</a>'
-        ].join('');
     }
 
     window.operateEvents = {
@@ -218,17 +204,12 @@
     }
 
 
- 	  function operateFormatter(value, row, index) {
+ 	  function titleFormatter(value, row, index) {
         return [
             '<a href="' + row.url + '" target="_blank">' + value + '</a>',
         ].join('');
     }
 
-	  function operateFormatter(value, row, index) {
-        return [
-            '<a href="' + row.url + '" target="_blank">' + value + '</a>',
-        ].join('');
-    }
 </script>
 </body>
 </html>

@@ -1,22 +1,24 @@
 <?php
 
-defined('ROOT_PATH') or define('ROOT_PATH',dirname(__DIR__) . DIRECTORY_SEPARATOR);
-define('LIB_PATH', ROOT_PATH . 'code/library' . DIRECTORY_SEPARATOR);
+require  realpath(__DIR__.'/../').'/code/config/config.php';
 
-$config =  include ROOT_PATH.'code/config/dbconfig.php';
-
-// 载入Loader类
-require LIB_PATH . 'Loader.php';
-\library\Loader::register();
-
+$config = include ROOT_PATH . '/code/config/dbconfig.php';
 $db = new \library\db\MysqlPDO($config);
 
-// 'order=asc&offset=0&limit=10'
+if(empty($_GET['action'])){
+    $_GET['action'] = 'data';
+}
+$data = [];
 
-$order  =  isset($_GET['order']) ? $_GET['order'] : '';
+$order  =  isset($_GET['order']) ? $_GET['order'] : 'id';
 $offset = isset($_GET['offset']) ? $_GET['offset'] : 0;
 $limit  = isset($_GET['limit']) ? $_GET['limit'] : 10;
 
-$data['total'] = $db->count('data');
-$data['rows'] = $db->findAll('data','','','',$limit, $offset);
+if($_GET['action'] === 'data'){
+    $data['total'] = $db->count('data');
+    $data['rows'] = $db->findAll('data','','','',$limit, $offset);
+} else if($_GET['action'] === 'setting'){
+    $data['total'] = $db->count('setting');
+    $data['rows'] = $db->findAll('setting','','','id,site,url,project,create_time',$limit, $offset);
+}
 die(json_encode($data));
