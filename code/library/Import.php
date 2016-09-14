@@ -179,7 +179,7 @@ class Import
      * @param array $data
      * @param int $siteId
      */
-     public  function insertUrl($data, $siteId){
+     protected  function insertUrl($data, $siteId){
         $result = [];
         foreach ($data as $v){
             $result[] = array(
@@ -190,6 +190,16 @@ class Import
             );
         }
         return $this->db->insertAll('url', $result);
+    }
+
+    /**
+     * 执行程序
+     * @param int $siteId
+     */
+    public function run($siteId){
+        $this->listWrite($siteId); // 下载列表
+        $this->listRead($siteId); // 下载内容页面
+        $this->detailRead($siteId); // 提取相关内容
     }
 }
 
