@@ -1,0 +1,29 @@
+#!php
+<?php
+/**
+ * 系统入口程序
+ * @name  run
+ * @author  xwx
+ */
+ 
+ 
+if ($argc < 2) {
+    die(<<<USAGE
+Code Generetor Version 1.0.0
+Usage:
+{$argv[0]} ApplicationName [ApplicationPath]
+USAGE
+);
+}
+
+require __DIR__.'/code/config/config.php';
+
+$config = include ROOT_PATH . '/code/config/dbconfig.php';
+$db = new \library\db\MysqlPDO($config);
+
+$import = new \library\Import($db);
+
+
+\library\App::run($import, $argv);
+
+echo "DONE".PHP_EOL;
