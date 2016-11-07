@@ -1,7 +1,9 @@
 <?php
 /**
- * PDO 数据库使用预处理语句
+ * PDO mysql类
  * @author xwx
+ * @mtime 2016-11-5 修改记录日志，偶尔内存溢出问题
+ * 
  */
 class MyPDO
 {
@@ -10,14 +12,19 @@ class MyPDO
      * debug 模式
      * @var string
      */
-    public $debug = true;
+    public $debug = false;
 
     /**
      * 是否记录构思日志
      * @var string
      */
-    public $log = true;
+    public $log = false;
 
+    /**
+     * 最大内存写入日志 单位（Mb）
+     * @var string
+     */
+    public $maxMemort = 2;
     /**
      * 日志目录
      * @var string
@@ -72,10 +79,10 @@ class MyPDO
         . "trace: " . $trace . PHP_EOL;
 
         if ($this->debug){
-             echo $log;
+             echo $log,PHP_EOL;
         }
         if ($this->log){
-            $this->_log($message, $this->logDestination);
+            $this->_log($log, $this->logDestination);
         }
     }
 
@@ -355,7 +362,8 @@ class MyPDO
             $sql = "INSERT INTO $table {$col} VALUES ({$val});";
 
             $sth = $this->execute($sql, $bindParams);
-            if ($sth->rowCount() && $newinserid = $this->lastInsertId()) {
+            if ($sth->rowCount()) {
+                $newinserid = $this->lastInsertId();
                 return $newinserid;
             }
             return false;
@@ -385,21 +393,23 @@ class MyPDO
         foreach ($data as $key => $val) {
             if (is_array($val)) { // 二维数组
                 $flag = true;
-                $fields = array_keys($val);
-                $values[] = "('" . implode("','", array_map('addslashes', $val)) . "')";
+                if(empty($fields))
+                {
+                    $fields = array_keys(array_shift($data));
+                }
+                $values[] = "('" . implode("','", array_map('addslashes', $val)) . "') \n";
             } else { // 一维数组
                 $values[] = $this->escape($val);
                 $fields[] = $key;
             }
         }
-
-        $sql .= ' (`' . implode('`,`', $fields) . '`) VALUES ';
-
+        $sql .= ' (`' . implode('`,`', $fields) . '`) VALUES  '."\n";
         if ($flag) { // 二维数组
             $sql .= implode(',', $values) . ';';
         } else { // 一维数组
-            $sql .= "('" . implode("','", $values) . "');";
+            $sql .= "(" . implode(",", $values) . ");";
         }
+
         return $sql;
     }
 
@@ -434,9 +444,9 @@ class MyPDO
     /**
      * 返回当前插入记录的主键ID
      */
-    public function lastInsertId()
+    public function lastInsertId($name = '')
     {
-        return $this->getConn()->lastInsertId();
+        return $this->getConn()->lastInsertId($name = '');
     }
 
     /**
@@ -468,7 +478,7 @@ class MyPDO
 
     /**
      * 执行一个SQL语句
-     * @param unknown $sql 需要执行的SQL语句
+     * @param string $sql 需要执行的SQL语句
      * @throws PDOException
      * @return number|boolean
      */
@@ -476,8 +486,21 @@ class MyPDO
     {
         self::$_arrSql[] = $sql.PHP_EOL;
         $result = $this->getConn()->exec($sql);
+  
         if (FALSE !== $result) {
             $this->num_rows = $result;
+            
+            $memortMB = round(memory_get_usage()/1024/1024); 
+            if($memortMB > $this->maxMemort && self::$_arrSql){
+                //是否写入日志
+                if ($this->log){ 
+                    $log = join(self::$_arrSql);
+                    $this->_log($log);
+                    unset($log);
+               }
+               self::$_arrSql = [];
+            }
+                        
             return $result;
         } else {
             $poderror = $this->getConn()->errorInfo();
@@ -510,6 +533,18 @@ class MyPDO
         {
             $sth->execute($bindParam);
         }
+        
+       $memortMB = round(memory_get_usage()/1024/1024); 
+       if($memortMB > $this->maxMemort && self::$_arrSql){
+        //是否写入日志
+        if ($this->log){ 
+            $log = join(self::$_arrSql);
+            $this->_log($log);
+            unset($log);
+         }
+         self::$_arrSql = [];
+        }    
+            
         return $sth;
     }
 
