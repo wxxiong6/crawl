@@ -3,7 +3,7 @@
  * PDO mysql类
  * @author xwx
  * @mtime 2016-11-5 修改记录日志，偶尔内存溢出问题
- * 
+ * @mtime 2016-11-9 增加连接超时等
  */
 class MyPDO
 {
@@ -84,6 +84,7 @@ class MyPDO
         if ($this->log){
             $this->_log($log, $this->logDestination);
         }
+
     }
 
     /**
@@ -107,19 +108,28 @@ class MyPDO
         if (! isset($this->_config['charset'])) {
             $this->_config['charset'] = 'utf8';
         }
+        if (! isset($this->_config['timeout'])) {
+            $this->_config['timeout'] = '5';
+        }
         $this->tablePrefix = $this->_config['tablePrefix'];
+
+       $conn = NULL;
+
         try {
-            self::$conn = new PDO(
+           $conn = new PDO(
                 $this->_config['host'],
                 $this->_config['user'],
                 $this->_config['password'],
                 array(
-                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->_config['charset']}"
+                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->_config['charset']}",
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_TIMEOUT => $this->_config['timeout'],
                 )
             );
         } catch (PDOException $e) {
-            throw new PDOException($e->getMessage());
+            throw new PDOException('error: '.$e->getMessage());
         }
+        self::$conn = $conn;
     }
 
     /**
@@ -336,13 +346,15 @@ class MyPDO
     {
         if (! is_array($rows))
             return FALSE;
-            if(!empty($rows[1]) && is_array($rows[1])){
-                $row =  $rows[0];
-            } else
+
+            $row = current($rows);
+            if(!is_array($row))
             {
-                $row =  $rows;
+                $row = $rows;
             }
+
             $data = $this->_preperaFormat($table, $row);
+
             foreach ($rows as $key => $value) {
                 if(is_array($value))
                 {
@@ -355,18 +367,15 @@ class MyPDO
                     $bindParams[':'.$key] = $value;
                 }
             }
+
+
             $cols = array_keys($row);
             $col = '(`' . implode('`,`', $cols) . '`)';
             $val = ':'.implode(',:', $cols);
             $table = $this->getTableNmae($table);
             $sql = "INSERT INTO $table {$col} VALUES ({$val});";
-
             $sth = $this->execute($sql, $bindParams);
-            if ($sth->rowCount()) {
-                $newinserid = $this->lastInsertId();
-                return $newinserid;
-            }
-            return false;
+            return $sth->rowCount();
     }
 
     /**
@@ -395,9 +404,15 @@ class MyPDO
                 $flag = true;
                 if(empty($fields))
                 {
-                    $fields = array_keys(array_shift($data));
+                    $fields = array_keys(current($data));
                 }
-                $values[] = "('" . implode("','", array_map('addslashes', $val)) . "') \n";
+
+                $values[] = "(".implode(',', array_map(function ($val)
+                {
+                    return  $this->escape($val);
+                }, $val)). ")";
+
+
             } else { // 一维数组
                 $values[] = $this->escape($val);
                 $fields[] = $key;
@@ -405,7 +420,7 @@ class MyPDO
         }
         $sql .= ' (`' . implode('`,`', $fields) . '`) VALUES  '."\n";
         if ($flag) { // 二维数组
-            $sql .= implode(',', $values) . ';';
+            $sql .= trim(implode(",\n", $values)) . ';';
         } else { // 一维数组
             $sql .= "(" . implode(",", $values) . ");";
         }
@@ -442,7 +457,7 @@ class MyPDO
     }
 
     /**
-     * 返回当前插入记录的主键ID
+     * 返回当前插入记录的自增主键ID
      */
     public function lastInsertId($name = '')
     {
@@ -486,21 +501,21 @@ class MyPDO
     {
         self::$_arrSql[] = $sql.PHP_EOL;
         $result = $this->getConn()->exec($sql);
-  
+
         if (FALSE !== $result) {
             $this->num_rows = $result;
-            
-            $memortMB = round(memory_get_usage()/1024/1024); 
+
+            $memortMB = round(memory_get_usage()/1024/1024);
             if($memortMB > $this->maxMemort && self::$_arrSql){
                 //是否写入日志
-                if ($this->log){ 
+                if ($this->log){
                     $log = join(self::$_arrSql);
                     $this->_log($log);
                     unset($log);
                }
                self::$_arrSql = [];
             }
-                        
+
             return $result;
         } else {
             $poderror = $this->getConn()->errorInfo();
@@ -521,30 +536,33 @@ class MyPDO
     public function execute($sql, array $bindParam = [])
     {
         self::$_arrSql[] = $sql.PHP_EOL.'bindParams'.var_export($bindParam, true).PHP_EOL;
+
         if (! $sth = $this->getConn()->prepare($sql)) {
             $poderror = $this->getConn()->errorInfo();
             throw new PDOException("[execution error]: " . $poderror[2] ."{$sql}");
+            return false;
         }
-        if(!empty($bindParam[1]) && is_array($bindParam[1])){
-            foreach($bindParam as $key => $value ){
-                $sth->execute($value);
+            $row = current($bindParam);
+            if(is_array($row))
+            {
+                foreach($bindParam as $key => $value ){
+                    $sth->execute($value);
+                }
+            } elseif(!is_null($row))            {
+                 $sth->execute($bindParam);
+            }else{
+                $sth->execute();
             }
-        } else
-        {
-            $sth->execute($bindParam);
-        }
-        
-       $memortMB = round(memory_get_usage()/1024/1024); 
+       $memortMB = round(memory_get_usage()/1024/1024);
        if($memortMB > $this->maxMemort && self::$_arrSql){
         //是否写入日志
-        if ($this->log){ 
+        if ($this->log){
             $log = join(self::$_arrSql);
             $this->_log($log);
             unset($log);
          }
          self::$_arrSql = [];
-        }    
-            
+        }
         return $sth;
     }
 
@@ -566,8 +584,10 @@ class MyPDO
     {
         $table = $this->getTableNmae($table);
         $tableInfo = $this->getArray("DESCRIBE {$table}");
-        if (empty($tableInfo))
-            throw new PDOException('The' . $table . 'not exists');
+        if (empty($tableInfo)){
+             throw new PDOException("Table '{$table}' doesn't exist");
+             return false;
+        }
         return $tableInfo;
     }
 
