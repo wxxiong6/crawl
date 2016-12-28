@@ -6,27 +6,58 @@
  */
 class Log
 {
-    const LEVEL_TRACE   = 'trace';
-    const LEVEL_WARNING = 'warning';
+
+    /**
+     *  代表发生了最严重的错误，会导致整个服务停止（或者需要整个服务停止）。
+     *  简单地说就是服务死掉了。
+     * @var unknown
+     */
+    const LEVEL_FATAL = 'fatal';
+
+    /**
+     *  代表发生了必须马上处理的错误。此类错误出现以后可以允许程序继续运行，
+     *  但必须马上修正，如果不修正，就会导致不能完成相应的业务。
+     * @var string
+     */
     const LEVEL_ERROR   = 'error';
+
+    /**
+     * 发生这个级别问题时，处理过程可以继续，但必须对这个问题给予额外关注。
+     * @var string
+     */
+    const LEVEL_WARN = 'warn';
+
+    /**
+     *  此输出级别常用语业务事件信息。例如某项业务处理完毕，
+     *  或者业务处理过程中的一些信息。
+     * @var string
+     */
     const LEVEL_INFO    = 'info';
-    const LEVEL_PROFILE = 'profile';
+
+    /**
+     * 此输出级别用于开发阶段的调试，可以是某几个逻辑关键点的变量值的输出，
+     * 或者是函数返回值的验证等等。业务相关的请用info
+     * @var string
+     */
+    const LEVEL_DEBUG   = 'debug';
+
+
 
     /**
      * @var integer how many messages should be logged before they are flushed to destinations.
      * Defaults to 10,000, meaning for every 10,000 messages
      */
-    public $autoFlush=10000;
+    public $autoFlush = 10000;
 
     /**
      * @var array log messages
      */
-    private $_logs=array();
+    private $_logs = array();
 
     /**
      * @var integer number of log messages
      */
-    private $_logCount=0;
+    private $_logCount = 0;
 
     /**
      * @var array log levels for filtering (used when filtering)
@@ -41,12 +72,12 @@ class Log
     /**
      * @var integer maximum log file size
      */
-    private $_maxFileSize=1024; // in KB
+    private $_maxFileSize = 1024; // in KB
 
     /**
      * @var integer number of log files used for rotation
      */
-    private $_maxLogFiles=5;
+    private $_maxLogFiles = 5;
 
     /**
      * @var string directory storing log files
@@ -151,18 +182,17 @@ class Log
     }
 
     /**
-     * 替代WarnLog。旧函数参数太多，使用不方便
-     *
+     * warn
      * @param string $value1
      * @param string $value2
      */
     public static function warn ($value)
     {
-        return self::write($value, self::LEVEL_WARNING, self:: getLogInfo());
+        return self::write($value, self::LEVEL_WARN, self:: getLogInfo());
     }
 
     /**
-     * 调试日志
+     * info
      * @param string $value1
      * @param string $value2
      */
@@ -172,12 +202,21 @@ class Log
     }
 
     /**
-     * 错误日志
+     * error
      * @param string $value1
      */
     public static function error($value)
     {
         return self::write($value, self::LEVEL_ERROR, self:: getLogInfo());
+    }
+
+    /**
+     * 错误日志
+     * @param string $value1
+     */
+    public static function debug($value)
+    {
+        return self::write($value, self::LEVEL_DEBUG, self:: getLogInfo());
     }
 
     /**
