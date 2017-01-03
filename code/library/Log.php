@@ -2,7 +2,7 @@
 /**
  * 日志类
  * @author    wxxiong@gmail.com
- * @version   v1.1
+ * @version   v1.2
  */
 class Log
 {
@@ -40,7 +40,6 @@ class Log
      * @var string
      */
     const LEVEL_DEBUG   = 'debug';
-
 
 
     /**
@@ -94,11 +93,7 @@ class Log
      */
     private static $_instance;
 
-
-    public function __construct(){
-        if($this->getLogPath()===null)
-            $this->setLogPath(__DIR__);
-    }
+    public function __construct(){}
 
     /**
      * 获取对象
@@ -116,6 +111,8 @@ class Log
      */
     public function getLogPath()
     {
+        if($this->getLogPath()===null)
+            $this->setLogPath(__DIR__);
         return $this->_logPath;
     }
 
@@ -127,7 +124,7 @@ class Log
     {
         $this->_logPath=realpath($value);
         if($this->_logPath===false || !is_dir($this->_logPath) || !is_writable($this->_logPath))
-            throw new Exception('logPath "{path}" does not point to a valid directory.
+            throw new Exception('logPath "{$this->_logPath}" does not point to a valid directory.
 			 Make sure the directory exists and is writable by the Web server process.');
     }
 
@@ -231,10 +228,9 @@ class Log
         $obj = self::getInstance();
         $obj->_logs[]=array($message,$level,microtime(true), $logInfo);
         $obj->_logCount++;
-        if($obj->autoFlush>0 && $obj->_logCount>=$obj->autoFlush){
+        if($obj->autoFlush>0 && $obj->_logCount>=$obj->autoFlush){  //日志行数
             $obj->flush();
-            //内存超过限制
-        } elseif(intval(memory_get_usage()/1024) >= $obj->_maxFileSize){
+        } elseif(intval(memory_get_usage()/1024) >= $obj->_maxFileSize){  //日志内存数
             $obj->flush();
         }
     }
@@ -280,18 +276,25 @@ class Log
     /**
      * Saves log messages in files.
      * @param array $logs list of log messages
+     * @param unknown $logs
+     * @throws Exception
      */
     protected function processLogs($logs)
     {
         $logFile=$this->getLogPath().DIRECTORY_SEPARATOR.$this->getLogFile();
-        if(@filesize($logFile)>$this->getMaxFileSize()*1024)
-            $this->rotateFiles();
-            $fp=@fopen($logFile,'a');
-            @flock($fp,LOCK_EX);
-            foreach($logs as $log)
-                @fwrite($fp,$this->formatLogMessage($log[0],$log[1],$log[2],$log[3]));
-                @flock($fp,LOCK_UN);
-                @fclose($fp);
+        try {
+            if(filesize($logFile)>$this->getMaxFileSize()*1024)
+                $this->rotateFiles();
+
+                $fp=fopen($logFile,'a');
+                flock($fp,LOCK_EX);
+                foreach($logs as $log)
+                    fwrite($fp,$this->formatLogMessage($log[0],$log[1],$log[2],$log[3]));
+                    flock($fp,LOCK_UN);
+                    fclose($fp);
+                } catch (Exception $e) {
+                    throw new Exception('log error:'.$e->getMessage());
+                }
     }
 
     /**
@@ -308,13 +311,13 @@ class Log
             {
                 // suppress errors because it's possible multiple processes enter into this section
                 if($i===$max)
-                    @unlink($rotateFile);
-                    else
-                        @rename($rotateFile,$file.'.'.($i+1));
+                    unlink($rotateFile);
+                else
+                  rename($rotateFile,$file.'.'.($i+1));
             }
         }
         if(is_file($file))
-            @rename($file,$file.'.1'); // suppress errors because it's possible multiple processes enter into this section
+            rename($file,$file.'.1');
     }
 
 
