@@ -1,6 +1,10 @@
 <?php
 /**
  * 日志类
+ * 需要手动创建日志目录,默认日志文件名是application.log。
+ *
+ * 设置日志目录 Log::getInstance()->setLogPath(__DIR__.'/logs');
+ *
  * @author    wxxiong@gmail.com
  * @version   v1.2
  */
@@ -111,7 +115,7 @@ class Log
      */
     public function getLogPath()
     {
-        if($this->getLogPath()===null)
+        if($this->_logPath ===null)
             $this->setLogPath(__DIR__);
         return $this->_logPath;
     }
@@ -124,7 +128,7 @@ class Log
     {
         $this->_logPath=realpath($value);
         if($this->_logPath===false || !is_dir($this->_logPath) || !is_writable($this->_logPath))
-            throw new Exception('logPath "{$this->_logPath}" does not point to a valid directory.
+            throw new Exception('logPath "{path}" does not point to a valid directory.
 			 Make sure the directory exists and is writable by the Web server process.');
     }
 
@@ -283,6 +287,10 @@ class Log
     {
         $logFile=$this->getLogPath().DIRECTORY_SEPARATOR.$this->getLogFile();
         try {
+            if(!is_file($logFile))
+            {
+                touch($logFile);
+            }
             if(filesize($logFile)>$this->getMaxFileSize()*1024)
                 $this->rotateFiles();
 
