@@ -1,11 +1,11 @@
-#!php
+#!/usr/bin/env php
 <?php
 /**
  * 系统入口程序
  * @name  run
  * @author  xwx
  */
- 
+
  
 if ($argc < 2) {
     die(<<<USAGE
@@ -23,7 +23,7 @@ $db = new \library\db\MysqlPDO($config);
 
 $import = new \library\Import($db);
 
-
-\library\App::run($import, $argv);
+$exitCode =  \library\App::run($import, $argv);
+exit($exitCode);
 
 echo "DONE".PHP_EOL;
