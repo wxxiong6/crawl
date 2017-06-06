@@ -1,6 +1,6 @@
 <?php
 namespace library;
-
+use library\Out;
 use Exception;
 
 /**
@@ -56,7 +56,7 @@ class Crawl
          */
         $htmlData = self::multiCurl($url);
         if (empty($htmlData)){
-           echo("error: file is empty 1 ".var_export($url, true)."\n");
+            Out::error("error: file is empty 1 ".var_export($url, true));
             return  false;
         }
         if (!is_array($htmlData))
@@ -68,7 +68,7 @@ class Crawl
             $con = $v['data'];
             $error = $v['error'];
             if (empty($con)) {
-                echo "error: file is empty {$url}, errorInfo: {$error}\n ";
+                Out::error("error: file is empty {$url}, errorInfo: {$error} ");
                 continue;
             }
 
@@ -82,9 +82,9 @@ class Crawl
             $result[$k]['url']        = $url;
 
             if ($writeResult) {
-                echo "[download succeed] {$url} \n";
+                Out::info("[download succeed] {$url}");;
             } else {
-                echo "[download defeated] {$url} \n";
+                 Out::info("[download defeated] {$url}");
             }
         }
         return $result;
@@ -123,13 +123,13 @@ class Crawl
             $data[$i]['url'] = trim(fread($handle, 255));
             $contentLen      = fread($handle, 4);
             if (empty($contentLen)) {
-                echo  $data[$i]['url']." error: file is not normal termination! 01 \n";
+                 Out::info("{$data[$i]['url']} error: file is not normal termination! 01 ");
                 break;
             }
             $aConLeng = unpack("Ldata", $contentLen);
             $conLeng  = $aConLeng['data'];
             if ($conLeng == 0) {
-                echo "error: file is not normal termination! 02  \n";
+                Out::info("error: file is not normal termination! 02  ");
                 break;
             }
             $data[$i]['content'] = fread($handle, $conLeng);
@@ -138,7 +138,7 @@ class Crawl
                 $db,
                 $data[$i]
             ));
-            echo "[match succeed] {$data[$i]['url']} \n";
+           Out::info("[match succeed] {$data[$i]['url']} ");
             unset($data[$i]);
             $i++;
         }
@@ -197,7 +197,7 @@ class Crawl
         if (empty($res)) return false;
 
         if (!is_array($res)){
-            echo "params is Array";
+            Out::error( "params is Array");
             return False;
         }
 

@@ -1,6 +1,6 @@
 <?php return array (
-  'host' => 'mysql:host=localhost;',
+  'host' => 'mysql:host=localhost;dbname=crawl;',
   'user' => 'root',
-  'password' => '123456',
+  'password' => 'root',
   'tablePrefix' => '',
 );

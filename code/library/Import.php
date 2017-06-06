@@ -1,8 +1,8 @@
 <?php
 namespace library;
-
+use library\Out;
 use Exception;
-
+use library\Crawl;
 class Import
 {
 
@@ -19,7 +19,7 @@ class Import
     public function install()
     {
         if (file_exists(DATA_PATH . 'install.lock')) {
-            exit("You had already installed");
+            Out::error("You had already installed");
         }
         if (! file_exists(DATA_PATH)) {
             mkdir(DATA_PATH, 0775, true);
@@ -34,7 +34,7 @@ class Import
         $sqlFile = ROOT_PATH.'crawl.sql';
         if(!file_exists($sqlFile))
         {
-             exit("SQL file don't exists");
+              Out::error("SQL file don't exists");
         }
         $fileContent = file_get_contents($sqlFile);
         $sqlArr = array_filter(array_map('trim', explode( ';' , $fileContent )));
@@ -67,7 +67,7 @@ class Import
             'id' => $siteId
         ));
 
-        echo "loader config file \n";
+         Out::info("loader config file ");
         if (!isset($row['cur_page'])  || empty($row['total_page'])) {
             throw new Exception('cur_page， total_page config');
             return false;
@@ -75,7 +75,7 @@ class Import
 
 
         if ($row['total_page'] < $row['cur_page']) {
-            echo "not data \n";
+             Out::info("not data \n");
             return false;
         }
 
@@ -114,7 +114,7 @@ class Import
         ));
         $filename = $row['project'] . '/list.txt';
         $callback = '\library\CrawlCallback::listWrite';
-        return \library\Crawl::read($filename, $callback, $row, $this->db);
+        return Crawl::read($filename, $callback, $row, $this->db);
     }
 
     /**
@@ -133,7 +133,7 @@ class Import
         ));
         $filename = $row['project'] . '/detail.txt';
         $callback = '\library\CrawlCallback::detailWrite';
-        return \library\Crawl::read($filename, $callback, $row, $this->db);
+        return Crawl::read($filename, $callback, $row, $this->db);
     }
 
     /**
@@ -171,7 +171,7 @@ class Import
         } else {
             exec("rm -rf {$path}", $output);
         }
-        echo "[succeed] clear {$row['project']} " . \var_export($output, true) . " \n";
+        Out::info("[succeed] clear {$row['project']} " . \var_export($output, true) );
     }
 
     /**

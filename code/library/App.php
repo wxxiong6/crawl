@@ -1,6 +1,6 @@
 <?php
 namespace library;
-
+use library\Out;
 class App
 {
     /**
@@ -11,7 +11,7 @@ class App
     public static function run($import, array $argv = [])
     {
         if( ! method_exists($import, $argv[1])){
-            exit('error');
+             Out::error('error');
         }
         if (!isset($argv[2])) $argv[2] = '';
         call_user_func(array($import, $argv[1]) , $argv[2]);

@@ -1,6 +1,7 @@
 <?php
 namespace library;
-
+use library\Crawl;
+use library\Out;
 class CrawlCallback
 {
 
@@ -61,7 +62,7 @@ class CrawlCallback
                 }
             } else
             {
-                echo "[match Notice] not match: url: {$config['rule']} \n";
+                Out::info("[match Notice] not match: url: {$config['rule']} ");
             }
 
             $dataDetail[] = array(
@@ -98,7 +99,7 @@ class CrawlCallback
         preg_match_all($row['item_rule_a'], $v['content'], $match);
         $filename = $row['project'] . '/detail.txt';
         if (empty($match[1])) {
-            echo  "[match Notice] not match: url: {$row['item_rule_a']} \n";
+            Out::info("[match Notice] not match: url: {$row['item_rule_a']}");
             return false;
         }
         $urlArr = [];
