@@ -68,7 +68,7 @@ CREATE TABLE `setting` (
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COMMENT='采集站点配置表';
 
 
-insert  into `setting`(`id`,`site`,`project`,`url`,`list_charset`,`content_charset`,`item_rule_li`,`item_rule_a`,`cur_page`,`total_page`,`filter_rule`,`server_count`,`create_time`,`img_dir`,`img_url`) values (1,'CSDN-热门文章','csdn-hot-l','http://blog.csdn.net/hot.html?&page=[PAGE_NUM]','UTF-8','UTF-8','','#\\<a\\s+href=\\\"(http\\:\\/\\/blog\\.csdn\\.net/\\w+/article/details/\\d+)\\\"#iUs',1,20,'',1,'2016-08-30 16:06:49','upload','http://www.baidu.com'),(2,'网贷新闻','hangye','http://www.wdzj.com/news/hangye/p[PAGE_NUM].html','UTF-8','UTF-8','','#<a\\s+target\\=\\\"\\_blank\\\"\\s+href\\=\\\"(http\\:\\/\\/www\\.wdzj\\.com\\/news\\/hangye\\/\\w+\\.html)\\\"#iUs',1,20,'',1,'0000-00-00 00:00:00','upload','http://www.baidu.com');
+insert  into `setting`(`id`,`site`,`project`,`url`,`list_charset`,`content_charset`,`item_rule_li`,`item_rule_a`,`cur_page`,`total_page`,`filter_rule`,`server_count`,`create_time`,`img_dir`,`img_url`) values (1,'网贷新闻','hangye','http://www.wdzj.com/news/hangye/p[PAGE_NUM].html','UTF-8','UTF-8','','#<a\\s+target\\=\\\"\\_blank\\\"\\s+href\\=\\\"(http\\:\\/\\/www\\.wdzj\\.com\\/news\\/hangye\\/\\w+\\.html)\\\"#iUs',20,20,'',1,'0000-00-00 00:00:00','upload','http://www.baidu.com');
 
 
 DROP TABLE IF EXISTS `setting_content`;
@@ -85,7 +85,7 @@ CREATE TABLE `setting_content` (
 
 
 
-insert  into `setting_content`(`id`,`site_id`,`field`,`rule`,`allowable_tags`,`match_img`) values (1,1,'title','#\\<span\\s+class\\=\\\"link_title\\\"\\>(.*)\\<\\/span\\>#iUs','',1),(2,1,'create_time','#\\<span\\s+class\\=\\\"link_postdate\\\"\\>(.*)\\<\\/span\\>#iUs','',1),(3,1,'view_num','#\\<span\\s+class\\=\\\"link_view\\\"\\s+title\\=\\\"阅读次数\\\"\\>(\\d+)人阅读\\<\\/span\\>#iUs','',1),(4,1,'content','#\\<div\\s+id\\=\\\"article_content\\\"\\s+class\\=\\\"article_content\\\"\\>(.*)\\<div\\s+class\\=\\\"bdsharebuttonbox#iUs','<p>,</span>,<img>',2),(5,2,'title','#\\<h1\\>(.*)\\<\\/h1\\>#iUs','',1),(6,2,'content','#\\<div\\s+class\\=\\\"con_news\\\"\\>(.*)\\<\\/div\\>#iUs','<p>,</span>,<img>',2),(7,2,'create_time','#<li\\s+class=\"n_time\">.+发布时间：(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}).+<\\/li>#s','',1),(8,2,'source','#<li\\s+class=\"n_time\">.+来源：(.+)\\s+.+<\\/li>#isU','',1),(9,2,'author','#<li\\s+class=\"n_time\">.+作者：(.+)\\s+.+</li>#isU','',1);
+insert  into `setting_content`(`id`,`site_id`,`field`,`rule`,`allowable_tags`,`match_img`) values (1,2,'title','#<h1.*>(.*)</h1>#iUs','',1),(2,2,'content','#<div.*class=\"c-cen\">(.*)</div>#iUs','<p>,</span>,<img>',2),(3,2,'create_time','#<li\\s+class=\"n_time\">.+发布时间：(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}).+<\\/li>#s','',1),(4,2,'source','#<span>来源：(.+)\\s+.+</li>#isU','',1);
 
 
 DROP TABLE IF EXISTS `url`;
