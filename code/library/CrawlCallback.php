@@ -14,8 +14,8 @@ class CrawlCallback
      */
     public static function detailWrite($row, $db, $v)
     {
-        if (empty($v['content']))
-            continue;
+        if (empty($v['content'])) return ;
+
         $v['url'] = trim($v['url']);
         $data = array();
         $dataDetail = array();
@@ -93,8 +93,7 @@ class CrawlCallback
 
     public static function listWrite($row, $db, $v)
     {
-        if (empty($v['content']))
-            continue;
+        if (empty($v['content'])) return ;
 
         preg_match_all($row['item_rule_a'], $v['content'], $match);
         $filename = $row['project'] . '/detail.txt';

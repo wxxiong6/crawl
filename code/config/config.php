@@ -12,7 +12,7 @@ defined('DB_NAME') or define('DB_NAME', 'crawl');
 define('IS_CLI', PHP_SAPI == 'cli' ? true : false);
 define('IS_WIN', strpos(PHP_OS, 'WIN') !== false);
 
-define('APP_DEBUG', true);
+define('APP_DEBUG', false);
 
 // 载入Loader类
 require LIB_PATH . 'Loader.php';

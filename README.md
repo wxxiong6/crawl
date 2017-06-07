@@ -1,29 +1,32 @@
 php爬虫系统
+====
 
-程序只支持CLI
+* 程序只支持CLI
 
-安装程序
+# 安装程序
 
-1.修改dbconfig.php成自己数据库配置
+### 1.dbconfig.php 添加正确的数据库配置
 
-2.执行 php run install
+### 2. 安装程序 
+```PHP
+php run install
+```
+# 启动程序
 
+### 安装完成后，在setting表添加来源站点及正则提取规则。
 
-安装完成后，需要添加来源站点及提取规则，setting, setting 表。
+### 启动程序 (参数是 setting 表id)
+```PHP
+php run run 1 
+```
 
-添加完使用来执行  php run run 1   (参数是 setting 表id)
+### 清除项目数据 
+```PHP
+php run clear
+ ```
 
-
-程序相关功能
-
-1.安装 php run install
-
-2.执行 php run run 1
-
-3.清除项目数据 php run clear
-
-
-完整代码目录
+### 完整代码目录
+```PHP
 │  crawl.sql
 │  LICENSE
 │  README
@@ -50,4 +53,4 @@ php爬虫系统
 │      
 ├─tmp
 └─web     web目录
-
+ ```

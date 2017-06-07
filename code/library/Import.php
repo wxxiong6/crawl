@@ -3,14 +3,15 @@ namespace library;
 use library\Out;
 use Exception;
 use library\Crawl;
+use library\db\MysqlPDO;
 class Import
 {
 
     public $db;
 
-    public function __construct($db)
+    public function __construct($config)
     {
-        $this->db = $db;
+        $this->db = new MysqlPDO($config);
     }
 
     /**
@@ -18,6 +19,7 @@ class Import
      */
     public function install()
     {
+        Out::info("start install...");
         if (file_exists(DATA_PATH . 'install.lock')) {
             Out::error("You had already installed");
         }
@@ -44,6 +46,7 @@ class Import
               if (empty($sql)){
                   continue;
               }
+              Out::info("exec SQL:{$sql}");
              $this->db->exec($sql);
         }
         $dbConfigFile = ROOT_PATH . '/code/config/dbconfig.php';
@@ -51,9 +54,9 @@ class Import
         $config['host'] .= 'dbname='.DB_NAME.';';
         $dbConfig = '<?php return '.var_export($config, true).';';
         file_put_contents($dbConfigFile, $dbConfig);
-        echo "install databases succeed ! \n";
+        Out::info("install databases succeed !");
         touch(DATA_PATH . 'install.lock');
-        echo "intall succeed !";
+        Out::info("intall succeed !");
     }
 
     /**

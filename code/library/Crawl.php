@@ -123,13 +123,13 @@ class Crawl
             $data[$i]['url'] = trim(fread($handle, 255));
             $contentLen      = fread($handle, 4);
             if (empty($contentLen)) {
-                 Out::info("{$data[$i]['url']} error: file is not normal termination! 01 ");
+                 Out::error("{$data[$i]['url']} error: file is not normal termination! 01 ");
                 break;
             }
             $aConLeng = unpack("Ldata", $contentLen);
             $conLeng  = $aConLeng['data'];
             if ($conLeng == 0) {
-                Out::info("error: file is not normal termination! 02  ");
+                Out::error("error: file is not normal termination! 02  ");
                 break;
             }
             $data[$i]['content'] = fread($handle, $conLeng);
