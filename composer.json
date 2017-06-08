@@ -1,0 +1,22 @@
+{
+    "name": "wxxiong6/crawl",
+    "description": "简单实用的php爬虫系统",
+   "keywords": [
+    "crawl",
+    "spider",
+    "php爬虫",
+     "爬虫"
+  ],
+    "minimum-stability": "stable",
+    "authors": [
+        {
+            "name": "xwx",
+            "email": "wxxiong6@gmail.com"
+        }
+    ],
+    "require": {
+        
+        "php": ">=5.4"
+    },
+     "license": "MIT"
+}
