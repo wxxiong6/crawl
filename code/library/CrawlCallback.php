@@ -6,8 +6,7 @@ class CrawlCallback
 {
 
     /**
-     * 写入库
-     *
+     * 按正规匹配内容写入库
      * @param array $row
      * @param obj $db
      * @param array $v
@@ -17,20 +16,32 @@ class CrawlCallback
         if (empty($v['content'])) return ;
 
         $v['url'] = trim($v['url']);
-        $data = array();
-        $dataDetail = array();
+        $data = [];
+        $dataDetail = [];
         $dataId = md5($v['url']);
+
+        if(empty($row['data'])){
+            Out::error("not match rule");
+            return false;
+        }
+
         foreach ($row['data'] as $configKey => $config) {
             $pattern = $config['rule'];
             preg_match($config['rule'], $v['content'], $match);
-            if (! empty($match[1])) {
+
+            if (empty($match[1])) {
+                Out::warning("[match Warning] not match: url: {$config['rule']} ");
+                continue;
+            }
+
+                $data[$config['field']] = trim(strip_tags(htmlspecialchars_decode($match[1]), $config['allowable_tags']));
+
                 // 是否要匹配图片
                 if ($config['match_img'] == '2') {
-                    $data[$config['field']] = trim(strip_tags(htmlspecialchars_decode($match[1]), $config['allowable_tags']));
 
                     preg_match_all('#<img.+src=\"?([^"].+\.?(jpg|gif|bmp|bnp|png|\"|\s)).+>#iU', $data[$config['field']], $imgMatch);
                     if(!empty($imgMatch[1])){
-                     //print_r($imgMatch);
+
                         foreach($imgMatch[1] as $keyimgSrc => $imgSrc)
                         {
                             $imgSrc = trim(substr($imgSrc,0,300), '"');
@@ -57,13 +68,10 @@ class CrawlCallback
                          }
 
                     }
-                } else {
-                    $data[$config['field']] = trim(strip_tags(htmlspecialchars_decode($match[1]), $config['allowable_tags']));
                 }
-            } else
-            {
-                Out::info("[match Notice] not match: url: {$config['rule']} ");
-            }
+
+
+
 
             $dataDetail[] = array(
                 'data_id' => $dataId,
@@ -86,7 +94,7 @@ class CrawlCallback
 
             if(!empty($dataImg))
             $db->insertAll('data_image', $dataImg);
-
+            if(!empty($dataDetail))
             $db->insertAll('data_detail', $dataDetail);
         }
     }

@@ -63,6 +63,7 @@ class Crawl
             $htmlData = (array) $htmlData;
 
         $result = [];
+        $handle = fopen($filename, "w+");
         foreach ($htmlData as $k => $v){
             $url = $v['url'];
             $con = $v['data'];
@@ -76,17 +77,21 @@ class Crawl
             $data['url']          = str_pad($url, 255);
             $data['content_leng'] = pack("L", $filesize);
             $data['content']      = $con;
+            $writeResult          = fwrite($handle, $data['url']);
+            $writeResult          = fwrite($handle, $data['content_leng']);
+             $writeResult         = fwrite($handle, $data['content'] );
+//             $writeResult          = file_put_contents($filename, $data, FILE_APPEND | LOCK_EX);
 
-            $writeResult          = file_put_contents($filename, $data, FILE_APPEND | LOCK_EX);
             $result[$k]['filesize']   = $filesize;
             $result[$k]['url']        = $url;
 
             if ($writeResult) {
                 Out::info("[download succeed] {$url}");;
             } else {
-                 Out::info("[download defeated] {$url}");
+                 Out::error("[download defeated] {$url}");
             }
         }
+        fclose($handle);
         return $result;
     }
 
@@ -124,7 +129,7 @@ class Crawl
             $contentLen      = fread($handle, 4);
             if (empty($contentLen)) {
                  Out::error("{$data[$i]['url']} error: file is not normal termination! 01 ");
-                break;
+                 break;
             }
             $aConLeng = unpack("Ldata", $contentLen);
             $conLeng  = $aConLeng['data'];
@@ -132,6 +137,7 @@ class Crawl
                 Out::error("error: file is not normal termination! 02  ");
                 break;
             }
+
             $data[$i]['content'] = fread($handle, $conLeng);
             call_user_func_array($callback, array(
                 $row,
@@ -142,6 +148,7 @@ class Crawl
             unset($data[$i]);
             $i++;
         }
+        fclose($handle);
         return true;
     }
 
