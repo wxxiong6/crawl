@@ -28,7 +28,8 @@ class App
             $import = new Import($this->config);
             $className = get_class($import);
             if( ! method_exists($import, $this->argv[0])){
-                throw new Exception("{$className}->{$this->argv[0]} not  existent in " . __FILE__ . ' ('.__LINE__.')');
+                Out::info(HELP_MSG);
+                return ;
             }
             $method = array_shift($this->argv);
             $argv = $this->argv;

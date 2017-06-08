@@ -70,12 +70,11 @@ class Import
             'id' => $siteId
         ));
 
-         Out::info("loader config file ");
-        if (!isset($row['cur_page'])  || empty($row['total_page'])) {
-            throw new Exception('cur_page， total_page config');
-            return false;
-        }
 
+        if (!isset($row['cur_page'])  || empty($row['total_page'])) {
+            throw new Exception('not sites config');
+        }
+        Out::info("loader config file ");
 
         if ($row['total_page'] < $row['cur_page']) {
              Out::info("not data \n");
@@ -92,7 +91,6 @@ class Import
 
         if(empty($result)){
             throw new \Exception("not data !");
-            return false;
         }
 
         $this->insertUrl($result, $siteId);
