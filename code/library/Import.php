@@ -1,9 +1,9 @@
 <?php
-namespace library;
-use library\Out;
+namespace crawl\library;
+use crawl\library\Out;
+use crawl\library\Crawl;
+use crawl\library\db\MysqlPDO;
 use Exception;
-use library\Crawl;
-use library\db\MysqlPDO;
 class Import
 {
 
@@ -88,7 +88,7 @@ class Import
             $urlArr[$i]['url'] = str_replace('[PAGE_NUM]', $i, $row['url']);
         }
 
-        $result = \library\Crawl::write($urlArr, $row['project'] . '/list.txt');
+        $result = Crawl::write($urlArr, $row['project'] . '/list.txt');
 
         if(empty($result)){
             throw new \Exception("not data !");
@@ -116,7 +116,7 @@ class Import
             'id' => $siteId
         ));
         $filename = $row['project'] . '/list.txt';
-        $callback = '\library\CrawlCallback::listWrite';
+        $callback = __NAMESPACE__.'\CrawlCallback::listWrite';
         return Crawl::read($filename, $callback, $row, $this->db);
     }
 
@@ -135,7 +135,7 @@ class Import
             'site_id' => $siteId
         ));
         $filename = $row['project'] . '/detail.txt';
-        $callback = '\library\CrawlCallback::detailWrite';
+        $callback = __NAMESPACE__.'\CrawlCallback::detailWrite';
         return Crawl::read($filename, $callback, $row, $this->db);
     }
 

@@ -1,5 +1,5 @@
 <?php
-namespace library\db;
+namespace crawl\library\db;
 
 use PDO;
 use Exception;

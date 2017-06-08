@@ -1,5 +1,5 @@
 <?php
-namespace library;
+namespace crawl\library;
 
 class Out
 {

@@ -1,7 +1,7 @@
 <?php
-namespace library;
-use library\Out;
-use library\Import;
+namespace crawl\library;
+use crawl\library\Out;
+use crawl\library\Import;
 use Exception;
 
 class App
@@ -28,9 +28,8 @@ class App
             $import = new Import($this->config);
             $className = get_class($import);
             if( ! method_exists($import, $this->argv[0])){
-                throw new Exception("{$className}->{$this->argv[0]} not existent in " . __FILE__ . ' ('.__LINE__.')');
+                throw new Exception("{$className}->{$this->argv[0]} not  existent in " . __FILE__ . ' ('.__LINE__.')');
             }
-
             $method = array_shift($this->argv);
             $argv = $this->argv;
             call_user_func_array([$import, $method], $argv);

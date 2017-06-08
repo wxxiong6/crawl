@@ -16,4 +16,4 @@ define('APP_DEBUG', false);
 
 // 载入Loader类
 require LIB_PATH . 'Loader.php';
-\library\Loader::register();
+\crawl\library\Loader::register();

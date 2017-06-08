@@ -20,6 +20,6 @@ require __DIR__.'/code/config/config.php';
 
 $config = include ROOT_PATH . '/code/config/dbconfig.php';
 
-$application = new library\App($config);
+$application = new crawl\library\App($config);
 $exitCode = $application->run();
 exit($exitCode);

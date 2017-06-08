@@ -1,7 +1,7 @@
 <?php
-namespace library;
-use library\Crawl;
-use library\Out;
+namespace crawl\library;
+use crawl\library\Crawl;
+use crawl\library\Out;
 class CrawlCallback
 {
 
@@ -106,7 +106,7 @@ class CrawlCallback
             $urlArr[$k2]['url'] = $v2;
         }
 
-        $result = \library\Crawl::write($urlArr, $filename);
+        $result = Crawl::write($urlArr, $filename);
         if(empty($result)){
             echo("not data !");
             return false;

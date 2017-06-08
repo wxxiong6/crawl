@@ -1,6 +1,6 @@
 <?php
-namespace library;
-use library\Out;
+namespace crawl\library;
+use crawl\library\Out;
 use Exception;
 
 /**
