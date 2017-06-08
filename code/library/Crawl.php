@@ -1,42 +1,47 @@
 <?php
 namespace crawl\library;
+
 use crawl\library\Out;
 use Exception;
 
 /**
- * 抓取
- *
- * @author
- *
+ * 抓取文件
+ * 通过Curl,下载到本地
+ * @author wxxiong6@gmail.com
  */
 class Crawl
 {
 
     /**
+     * url 字符长度
+     * @var string
+     */
+    const URL_LENGTH = '125';
+
+    /**
      *
      * @var $data
      */
-    private $data = array();
+    private $data = [];
 
     /**
      * 存放数据目录
-     *
      * @var string
      */
-    static $dirPath = null;
+    static $dirPath = DATA_PATH;
 
     public function __construct()
     {}
 
     /**
-     * 写入获取内容
+     * 通过CURL下载页面，写入文件
      *
-     * @param array $url
-     * @param unknown $dir
-     * @param unknown $filename
+     * @param array $url           需要下载页面URL
+     * @param string $filename     写入文件名称
+     * @param string $sleepSeconds 暂停时间 （秒）
      * @return number|boolean
      */
-    public static function write($url, $filename, $sleepSeconds = 0)
+    public static function write(array $url, $filename, $sleepSeconds = 0)
     {
         if ($sleepSeconds > 0)
             sleep($sleepSeconds);
@@ -52,19 +57,20 @@ class Crawl
 
         /**
          * 获取网页数据
+         *
          * @var Ambiguous $htmlData
          */
         $htmlData = self::multiCurl($url);
-        if (empty($htmlData)){
-            Out::error("error: file is empty 1 ".var_export($url, true));
-            return  false;
+        if (empty($htmlData)) {
+            Out::error("error: file is empty 1 " . var_export($url, true));
+            return false;
         }
-        if (!is_array($htmlData))
+        if (! is_array($htmlData))
             $htmlData = (array) $htmlData;
 
         $result = [];
         $handle = fopen($filename, "w+");
-        foreach ($htmlData as $k => $v){
+        foreach ($htmlData as $k => $v) {
             $url = $v['url'];
             $con = $v['data'];
             $error = $v['error'];
@@ -73,22 +79,22 @@ class Crawl
                 continue;
             }
 
-            $filesize             = strlen($con);
-            $data['url']          = str_pad($url, 255);
+            $filesize = strlen($con);
+            $data['url'] = str_pad($url, self::URL_LENGTH);
             $data['content_leng'] = pack("L", $filesize);
-            $data['content']      = $con;
-            $writeResult          = fwrite($handle, $data['url']);
-            $writeResult          = fwrite($handle, $data['content_leng']);
-             $writeResult         = fwrite($handle, $data['content'] );
-//             $writeResult          = file_put_contents($filename, $data, FILE_APPEND | LOCK_EX);
+            $data['content'] = $con;
+            $writeResult = fwrite($handle, $data['url']);
+            $writeResult = fwrite($handle, $data['content_leng']);
+            $writeResult = fwrite($handle, $data['content']);
 
-            $result[$k]['filesize']   = $filesize;
-            $result[$k]['url']        = $url;
+            $result[$k]['filesize'] = $filesize;
+            $result[$k]['url'] = $url;
 
             if ($writeResult) {
-                Out::info("[download succeed] {$url}");;
+                Out::info("[download succeed] {$url}");
+                ;
             } else {
-                 Out::error("[download defeated] {$url}");
+                Out::error("[download defeated] {$url}");
             }
         }
         fclose($handle);
@@ -96,21 +102,24 @@ class Crawl
     }
 
     /**
-     * 数据目录
+     * 获取目录
      *
      * @return string
      */
     public static function getDir()
     {
-        if (is_null(self::$dirPath)) {
-            self::$dirPath = DATA_PATH;
-        }
         return self::$dirPath;
     }
 
     /**
+     * 设置目录
+     */
+    public static function setDir($dirPath){
+        self::$dirPath = $dirPath;
+    }
+
+    /**
      * 读取数据
-     *
      * @param string $filename
      */
     public static function read($filename, $callback, $row, $db)
@@ -122,18 +131,18 @@ class Crawl
         }
         $handle = fopen($filename, "rb");
         $data = array();
-         $i = 0;
-        while (!feof($handle)) {
-
-            $data[$i]['url'] = trim(fread($handle, 255));
-            $contentLen      = fread($handle, 4);
+        $i = 0;
+        while (! feof($handle)) {
+            $data[$i]['url'] = trim(fread($handle, self::URL_LENGTH));
+            $contentLen = fread($handle, 4);
             if (empty($contentLen)) {
-                 Out::error("{$data[$i]['url']} error: file is not normal termination! 01 ");
-                 break;
+                Out::error("{$data[$i]['url']} error: {$filename} file is not normal termination! 01 ");
+                break;
             }
             $aConLeng = unpack("Ldata", $contentLen);
-            $conLeng  = $aConLeng['data'];
-            if ($conLeng == 0) {
+            $conLeng = $aConLeng['data'];
+            if ($conLeng <= 0) {
+                var_dump($kb);
                 Out::error("error: file is not normal termination! 02  ");
                 break;
             }
@@ -144,9 +153,9 @@ class Crawl
                 $db,
                 $data[$i]
             ));
-           Out::info("[match succeed] {$data[$i]['url']} ");
+            Out::info("[match succeed] {$data[$i]['url']} ");
             unset($data[$i]);
-            $i++;
+            $i ++;
         }
         fclose($handle);
         return true;
@@ -195,16 +204,17 @@ class Crawl
     /**
      * 多线程抓取
      *
-     * @param unknown $res
+     * @param array $res
      * @param string $options
      * @return boolean|string
      */
-    public static function multiCurl($res, $options = "")
+    public static function multiCurl(array $res, $options = "")
     {
-        if (empty($res)) return false;
+        if (empty($res))
+            return false;
 
-        if (!is_array($res)){
-            Out::error( "params is Array");
+        if (! is_array($res)) {
+            Out::error("params is Array");
             return False;
         }
 
@@ -216,13 +226,14 @@ class Crawl
                 CURLOPT_RETURNTRANSFER => 1,
                 CURLOPT_USERAGENT => "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36",
                 CURLOPT_FOLLOWLOCATION => 1,
-                CURLOPT_TIMEOUT => 60,    //秒
+                CURLOPT_TIMEOUT => 60, // 秒
                 CURLOPT_CONNECTTIMEOUT => 25
             );
 
             // add curl options to each handle
         foreach ($res as $k => $row) {
-            if (empty($row['url'])) continue;
+            if (empty($row['url']))
+                continue;
             $ch{$k} = curl_init();
             $options[CURLOPT_URL] = $row['url'];
             $opt = curl_setopt_array($ch{$k}, $options);
@@ -247,7 +258,7 @@ class Crawl
                 $res[$k]['data'] = '';
             else
                 $res[$k]['data'] = curl_multi_getcontent($handles[$k]); // get results
-                                                                               // close current handler
+                                                                            // close current handler
             curl_multi_remove_handle($mh, $handles[$k]);
         }
         curl_multi_close($mh);
