@@ -85,8 +85,10 @@ CREATE TABLE `setting_content` (
 
 
 
-insert  into `setting_content`(`id`,`site_id`,`field`,`rule`,`allowable_tags`,`match_img`) values (1,2,'title','#<h1.*>(.*)</h1>#iUs','',1),(2,2,'content','#<div.*class=\"c-cen\">(.*)</div>#iUs','<p>,</span>,<img>',2),(3,2,'create_time','#<li\\s+class=\"n_time\">.+发布时间：(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}).+<\\/li>#s','',1),(4,2,'source','#<span>来源：(.+)\\s+.+</li>#isU','',1);
-
+insert into `setting_content` (`id`, `site_id`, `field`, `rule`, `allowable_tags`, `match_img`) values('1','1','title','#<h1.*>(.*)</h1>#iUs','','1');
+insert into `setting_content` (`id`, `site_id`, `field`, `rule`, `allowable_tags`, `match_img`) values('2','1','content','#<div.*class=\"c-cen\">(.*)</div>#iUs','<p>,</span>,<img>','2');
+insert into `setting_content` (`id`, `site_id`, `field`, `rule`, `allowable_tags`, `match_img`) values('3','1','create_time','#<li\\s+class=\"n_time\">.+发布时间：(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}).+<\\/li>#s','','1');
+insert into `setting_content` (`id`, `site_id`, `field`, `rule`, `allowable_tags`, `match_img`) values('4','1','source','#<span>来源：(.+)\\s+.+</li>#isU','','1');
 
 DROP TABLE IF EXISTS `url`;
 
