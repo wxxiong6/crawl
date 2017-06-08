@@ -14,6 +14,8 @@ define('IS_WIN', strpos(PHP_OS, 'WIN') !== false);
 
 define('APP_DEBUG', false);
 
+define('HELP_MSG', $helpMsg);
+
 // 载入Loader类
 require LIB_PATH . 'Loader.php';
 \crawl\library\Loader::register();
