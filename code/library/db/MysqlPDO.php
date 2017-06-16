@@ -471,8 +471,6 @@ class MysqlPDO
      */
     public function exec($sql, $params = [])
     {
-        print_r('$sql'.$sql);
-        print_r($params);
         try{
             if (! $this->_stmt = $this->getConn()->prepare($sql)) {
                 $poderror = $this->getConn()->errorInfo();
