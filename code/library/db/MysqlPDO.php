@@ -44,6 +44,12 @@ class MysqlPDO
      */
     private static $conn = NULL;
 
+    public $log = true;
+
+    protected $pdoException;
+
+    private  $stmt;
+
     /**
      * 构造函数
      */
@@ -136,11 +142,12 @@ class MysqlPDO
     {
         $where = "";
         $fields = empty($fields) ? "*" : $fields;
+        $params = [];
         if (is_array($conditions)) {
             $join = array();
             foreach ($conditions as $key => $condition) {
-                $condition = $this->escape($condition);
-                $join[] = "`{$key}` = {$condition}";
+                $join[] = "`{$key}` = :{$key}";
+                $params[":{$key}"] = $condition;
             }
             $where = "WHERE " . join(" AND ", $join);
         } else {
@@ -155,7 +162,7 @@ class MysqlPDO
         if (null != $limit){
             $sql = $this->setlimit($sql, $limit, $offset);
         }
-        return $this->getArray($sql);
+        return $this->getArray($sql, $params);
     }
 
     /**
@@ -184,13 +191,14 @@ class MysqlPDO
             return FALSE;
         foreach ($row as $key => $value) {
             $cols[] = $key;
-            $vals[] = $this->escape($value);
+            $vals[] = ":{$key}";
+            $params[":{$key}"] = $value;
         }
         $col = '(`' . implode('`,`', $cols) . '`)';
         $val = implode(',', $vals);
         $table = $this->getTableNmae($table);
         $sql = "INSERT INTO $table {$col} VALUES ({$val})";
-        if (FALSE != $this->exec($sql)) { // 获取当前新增的ID
+        if (FALSE != $this->exec($sql, $params)) { // 获取当前新增的ID
             if ($newinserid = $this->lastInsertId()) {
                 return $newinserid;
             }
@@ -251,9 +259,10 @@ class MysqlPDO
         $where = "";
         if (is_array($conditions)) {
             $join = array();
+            $params = [];
             foreach ($conditions as $key => $condition) {
-                $condition = $this->escape($condition);
-                $join[] = "`{$key}` = {$condition}";
+                $join[] = "`{$key}` = :{$key}";
+                $params[":{$key}"] = $condition;
             }
             $where = "WHERE ( " . join(" AND ", $join) . ")";
         } else {
@@ -262,7 +271,7 @@ class MysqlPDO
         }
         $table = $this->getTableNmae($table);
         $sql = "DELETE FROM {$table} {$where}";
-        return $this->exec($sql);
+        return $this->exec($sql, $params);
     }
 
     /**
@@ -346,11 +355,13 @@ class MysqlPDO
         $row = $this->__prepera_format($table, $row);
         if (empty($row))
             return FALSE;
+            $params = [];
         if (is_array($conditions)) {
             $join = array();
+
             foreach ($conditions as $key => $condition) {
-                $condition = $this->escape($condition);
-                $join[] = "`{$key}` = {$condition}";
+                $join[] = "`{$key}` = :{$key}";
+                $params[":{$key}"] =  $condition;
             }
             $where = "WHERE " . join(" AND ", $join);
         } else {
@@ -358,13 +369,14 @@ class MysqlPDO
                 $where = "WHERE " . $conditions;
         }
         foreach ($row as $key => $value) {
-            $value = $this->escape($value);
-            $vals[] = "`{$key}` = {$value}";
+            $vals[] = "`{$key}` = :set_{$key}";
+            $params[":set_{$key}"] =  $value;
         }
         $values = join(", ", $vals);
         $table = $this->getTableNmae($table);
         $sql = "UPDATE  {$table} SET {$values} {$where}";
-        return $this->exec($sql);
+        $resutlUpdate = $this->exec($sql, $params);
+        return ($resutlUpdate == true) ? $this->_stmt->rowCount() : false;
     }
 
     /**
@@ -414,22 +426,6 @@ class MysqlPDO
         return array_intersect_key($rows, $newcol);
     }
 
-    /**
-     * 按SQL语句获取记录结果，返回数组
-     *
-     * @param
-     *            sql 执行的SQL语句
-     */
-    public function getArray($sql)
-    {
-        $this->_arrSql[] = $sql;
-        if (! $sth = $this->getConn()->prepare($sql)) {
-            $poderror = $this->getConn()->errorInfo();
-            throw new Exception("[execution error]: " . $poderror[2] ."{$sql}");
-        }
-        $sth->execute();
-        return $sth->fetchAll(PDO::FETCH_ASSOC);
-    }
 
     /**
      * 返回当前插入记录的主键ID
@@ -468,22 +464,41 @@ class MysqlPDO
 
     /**
      * 执行一个SQL语句
-     *
-     * @param
-     *            sql 需要执行的SQL语句
+     * @param unknown $sql  需要执行的SQL语句
+     * @param array $params  绑定参数
+     * @throws Exception
+     * @return boolean
      */
-    public function exec($sql)
+    public function exec($sql, $params = [])
     {
-        $this->_arrSql[] = $sql;
-        $result = $this->getConn()->exec($sql);
-        if (FALSE !== $result) {
-            $this->num_rows = $result;
-            return $result;
-        } else {
-            $poderror = $this->getConn()->errorInfo();
-            if (!empty($poderror)){
-                throw new Exception("Execution error: " . $poderror[2]."{$sql}");
+        print_r('$sql'.$sql);
+        print_r($params);
+        try{
+            if (! $this->_stmt = $this->getConn()->prepare($sql)) {
+                $poderror = $this->getConn()->errorInfo();
+                throw new Exception("[execution error]: " . $poderror[2] ."{$sql}");
             }
+            if(!empty($params)){
+                foreach ($params as $key=>$val) {
+                    $sql = str_replace($key, "'{$val}'", $sql);
+                    $this->_stmt->bindValue($key, $val);
+                }
+            }
+            $this->_arrSql[] =  $sql;
+            $this->_stmt->execute();
+            return true;
+        } catch(PDOException $e){
+            if ($this->log == true) {
+                error_log('DATABASE ::'.print_r($e, true));
+            }
+            $this->pdoException = $e;
+            return false;
+        } catch(Exception $e) {
+            if ($this->log == true) {
+                error_log('DATABASE ::'.print_r($e, true));
+            }
+            $this->pdoException = $e;
+            return false;
         }
         return false;
     }
@@ -504,11 +519,16 @@ class MysqlPDO
 
    /**
     * 获取表名
-    * @param string $tbl_name
+    * @param string $name
     * @return string
     */
-    public function getTableNmae($table){
-        return "`{$this->tablePrefix}{$table}`";
+    public function getTableNmae($name){
+        if (strpos($name, '{{') !== false) {
+            $name = preg_replace('/\\{\\{(.*?)\\}\\}/', '\1', $name);
+            return str_replace('%', $this->tablePrefix, $name);
+        } else {
+            return $name;
+        }
     }
 
     /**
@@ -531,6 +551,34 @@ class MysqlPDO
             $value = stripslashes($value);
         return $this->getConn()->quote($value);
     }
+
+    /**
+     * 按SQL语句获取记录结果，返回数组
+     *
+     * @param string sql 执行的SQL语句
+     * @param  array params 参数绑定
+     */
+    private function getArray($sql, $params = [])
+    {
+        try{
+            $this->exec($sql, $params);
+            return $this->_stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch(PDOException $e){
+            if ($this->log == true) {
+                error_log('DATABASE WRAPPER::'.print_r($e, true));
+            }
+            $this->pdoException = $e;
+            return false;
+        } catch(Exception $e) {
+            if ($this->log == true) {
+                error_log('DATABASE WRAPPER::'.print_r($e, true));
+            }
+            $this->pdoException = $e;
+            return false;
+        }
+
+    }
+
 
     /**
      * 析构函数
