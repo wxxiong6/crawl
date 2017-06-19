@@ -6,14 +6,18 @@
  * @author  xwx
  */
 
+$helpMsg = <<<EOT
+Usage:
+    php run [options] [arguments]
+Options:
+    run                            runs
+    clear                          Clear the project download data (including the database)
+    install                        install
+EOT;
  
 if ($argc < 2) {
-    die(<<<USAGE
-Code Generetor Version 1.0.0
-Usage:
-{$argv[0]} ApplicationName [ApplicationPath]
-USAGE
-);
+ 
+    die($helpMsg);
 }
 
 require __DIR__.'/code/config/config.php';
