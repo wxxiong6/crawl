@@ -2,7 +2,7 @@
 require_once 'code/library/db/MysqlPDO.php';
 // TODO Auto-generated MysqlPDOTest::setUp()
 $dbconfig = array (
-    'host' => 'mysql:host=localhost;dbname=test;',
+    'host' => 'mysql:host=localhost;dbname=test;port=3306',
     'user' => 'root',
     'password' => 'root',
     'tablePrefix' => 'pdo_',
@@ -17,18 +17,17 @@ $mysqlPDO = new \crawl\library\db\MysqlPDO($dbconfig);
 //                  PRIMARY KEY (id));');
 
 
- $mysqlPDO->insertAll('pdo_test',[
-     [
-     'name' => "xwx123'33",
-     'email' => 'xwx@gmail.com'
-    ],
-     [
-     'name' => "333333",
-     'email' => 'x333x@gmail.com'
-         ],
- ]);
-
- $mysqlPDO->insertAll('pdo_test',[
+//  $mysqlPDO->insertAll('{{test}}',[
+//      [
+//      'name' => "xwx123'33",
+//      'email' => 'xwx@gmail.com'
+//     ],
+//      [
+//      'name' => "333333",
+//      'email' => 'x333x@gmail.com'
+//          ],
+//  ]);
+ $mysqlPDO->insert('{{test}}',[
      [
          'name' => "xwx123'33ddddddddddddddddddddd",
          'email' => 'xwdddddddddddddddddddd@gmail.com'
