@@ -516,14 +516,17 @@ class MysqlPDO
     }
 
    /**
-    * 获取表名
+    * 获取表名，处理表前缀
     * @param string $name
     * @return string
     */
     public function getTableNmae($name){
         if (strpos($name, '{{') !== false) {
-            $name = preg_replace('/\\{\\{(.*?)\\}\\}/', '\1', $name);
-            return str_replace('%', $this->tablePrefix, $name);
+            $prefix = $this->_config['tablePrefix'];
+            $name = preg_replace_callback('#\{\{(.*)\}\}#', function ($match) use($prefix){
+                return '`'.$prefix.$match[1].'`';
+            }, $name);
+            return $name;
         } else {
             return $name;
         }
@@ -531,9 +534,7 @@ class MysqlPDO
 
     /**
      * 对特殊字符进行过滤
-     *
-     * @param
-     *            value 值
+     * @param  value 值
      */
     private function __val_escape($value)
     {
