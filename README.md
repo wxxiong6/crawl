@@ -1,7 +1,7 @@
 php爬虫系统
 ====
 
-* 程序只支持CLI
+* 程序只支持CLI,执行前需要把php加入环境变量
 
 # 安装程序
 
@@ -20,9 +20,9 @@ php run install
 php run run 1 
 ```
 
-### 清除项目数据 
+### 清除项目数据 (参数是 setting 表id)
 ```PHP
-php run clear
+php run clear 1
  ```
 
 ### 完整代码目录
