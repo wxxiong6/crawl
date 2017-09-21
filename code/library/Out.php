@@ -5,6 +5,16 @@ class Out
 {
 
         /**
+         * Outputs an array of debug
+         *
+         * @param array $debug
+         */
+        public static function debug($debug)
+        {
+            self::print($debug, 'debug');
+        }
+
+        /**
          * Outputs an array of info
          *
          * @param array $info
@@ -59,7 +69,8 @@ class Out
         $styles = array(
             'success' => "\033[0;32m%s\033[0m",
             'error' => "\033[31;31m%s\033[0m",
-            'info' => "\033[33;33m%s\033[0m"
+            'info'  => "\033[33;33m%s\033[0m",
+            'debug' => "\033[33;33m%s\033[0m"
         );
 
         $format = '%s';

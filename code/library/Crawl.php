@@ -264,4 +264,42 @@ class Crawl
         curl_multi_close($mh);
         return $res; // return response
     }
+
+    /**
+     * 把相当路径处理在绝对路径
+     * @param string $url    url
+     * @param String $source 当前页面完整的URL
+     * @return unknown|boolean|string
+     */
+    public static function formatUrl($url, $source)
+    {
+        if(strpos($url, '://') !== FALSE)  return $url;
+        $urlPart = parse_url($source);
+        if($urlPart == FALSE) return FALSE;
+
+        $baseUrl = $urlPart['scheme'] . '://' . $urlPart['host'] . (isset($urlPart['port']) ? ':' . $urlPart['port'] : '');
+        $basePath = isset($urlPart['path']) ? $urlPart['path'] : '/' ;
+
+        if(strpos($url, "//") === 0){
+            $url = $urlPart['scheme'] . '://' . substr($url,2);
+        } elseif(strpos($url, '/') === 0){
+             $url = $baseUrl . $url;
+        } elseif(strpos($url, './') === 0){
+             $url = $baseUrl.$basePath. ltrim($url, './');
+        } elseif(strpos($url, '..') === 0){ //多级目录
+            //路径中 找出../../a.jpg 分割成array
+            $pathArr = explode('../', $url);
+            //删除a.jpg部分,只保留 ../../ path中分
+            $filePath = array_pop($pathArr);
+            $pathLevel = count($pathArr);
+
+            $basePathArr = explode('/', ltrim($basePath,'/'));
+            for($i=0; $i<$pathLevel; $i++){
+                array_pop($basePathArr);
+            }
+            $url = $baseUrl . join('/', $basePathArr) .$filePath;
+        }
+        return $url;
+    }
+
 }

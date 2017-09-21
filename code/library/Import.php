@@ -46,7 +46,7 @@ class Import
               if (empty($sql)){
                   continue;
               }
-              Out::info("exec SQL:{$sql}");
+              Out::info("execute SQL:{$sql}");
              $this->db->exec($sql);
         }
         $dbConfigFile = ROOT_PATH . '/code/config/dbconfig.php';
@@ -56,7 +56,7 @@ class Import
         file_put_contents($dbConfigFile, $dbConfig);
         Out::info("install databases succeed !");
         touch(DATA_PATH . 'install.lock');
-        Out::info("intall succeed !");
+        Out::info("install succeed !");
     }
 
     /**

@@ -14,7 +14,8 @@ Options:
     clear                          Clear the project download data (including the database)
     install                        install
 EOT;
- 
+
+date_default_timezone_set("PRC");
 if ($argc < 2) {
  
     die($helpMsg);

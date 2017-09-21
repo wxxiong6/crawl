@@ -106,11 +106,14 @@ class CrawlCallback
         preg_match_all($row['item_rule_a'], $v['content'], $match);
         $filename = $row['project'] . '/detail.txt';
         if (empty($match[1])) {
-            Out::info("[match Notice] not match: url: {$row['item_rule_a']}");
+            Out::error("[match Notice] not match: url: {$row['item_rule_a']}");
             return false;
         }
         $urlArr = [];
+
         foreach ($match[1] as $k2=>$v2) {
+            //补全不完整的URL
+            $v2 = Crawl::formatUrl($v2, $v['url']);
             $urlArr[$k2]['url'] = $v2;
         }
 
