@@ -583,7 +583,7 @@ class MysqlPDO
      */
     private function getArray($sql, $params = [])
     {
-        if ($this->exec($sql, $params)) {
+        if (!$this->exec($sql, $params)) {
             return false;
          } else {
            return $this->_stmt->fetchAll(PDO::FETCH_ASSOC);
