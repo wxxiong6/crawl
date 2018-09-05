@@ -569,9 +569,11 @@ class MysqlPDO
                     PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->_config['charset']}",
                 )
             );
+           self::$conn ->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
         } catch (PDOException $e) {
             exit($e);
         }
+
     }
     /**
      * 按SQL语句获取记录结果，返回数组.
@@ -581,7 +583,10 @@ class MysqlPDO
      */
     private function getArray($sql, $params = [])
     {
-       $this->exec($sql, $params);
-       return $this->_stmt->fetchAll(PDO::FETCH_ASSOC);
+        if ($this->exec($sql, $params)) {
+            return false;
+         } else {
+           return $this->_stmt->fetchAll(PDO::FETCH_ASSOC);
+         }
     }
 }
