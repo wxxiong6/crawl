@@ -1,11 +1,8 @@
 <?php
-
 namespace crawl\library\db;
-
 use Exception;
 use PDO;
 use PDOException;
-
 /**
  * PDO 数据库类.
  * Class MysqlPDO
@@ -15,26 +12,30 @@ use PDOException;
  * getLastSql 获取最后一次执行的sql语句
  *  *
  * ```php
- * $db = new \crawler\db\MysqlPDO([
- *     'host' => $host,
- *     'username' => $username,
- *     'password' => $password,
- *      'tablePrefix' => $tablePrefix,
- * ]);
- *
- * $db->getConnection()->beginTransaction();
- * try {
- *    ...
- *    $db->insert("a", $arr);
- *    $db->update("a", $arr);
- *    ...
- *    $db->getConnection()->commit();
- * } catch (Exception $e){
- *    $db->getConnection()->rollBack();
- *   .....
- * }
- * print_r($db->getLastSql());
- *
+  include "MysqlPDO.php";
+  $db = new \crawl\library\db\MysqlPDO([
+      'dsn'         => 'mysql:host=localhost;dbname=sys',
+     'username'    => 'root',
+     'password'    => 'root',
+     'tablePrefix' => '',
+     'charset'     => 'utf8',
+ ]);
+
+  $result = $db->findAll('sys_config');
+
+  $db->getConnection()->beginTransaction();
+  try {
+
+     $db->insert("a", $arr);
+     $db->update("a", $arr);
+
+     $db->getConnection()->commit();
+  } catch (Exception $e){
+     $db->getConnection()->rollBack();
+
+  }
+  print_r($db->getLastSql());
+
  * ```
  */
 class MysqlPDO
@@ -43,54 +44,44 @@ class MysqlPDO
      * 最后执行的一条SQL语句
      * @var string
      */
-    public $lastSql;
-
+    private $lastSql;
     /**
      * 受影响行数.
      * @var int
      */
-    public $numRows;
-
+    private $numRows;
     /**
      * 是否记录日志
      * @var bool
      */
-    public $log = true;
-
+    private $log = true;
     /**
      * 数据表前缀
      */
     protected $tablePrefix = '';
-
     /**
      * 异常
      * @var \PDOException
      */
     protected $pdoException;
-
     /**
      * 执行SQL语句.
      * @var array
      */
     private $_arrSql;
-
     /**
      * 数据库配置.
      * @var array
      */
     private $_config;
-
     /**
      * @var \PDO
      */
     private static $conn = null;
-
     /**
      * @var \PDOStatement
      */
     private $_stmt;
-
-
     /**
      * MysqlPDO constructor.
      * @param array $config
@@ -105,7 +96,6 @@ class MysqlPDO
             throw new PDOException('Adapter parameters must be in an array !');
         }
     }
-
     /**
      * 析构函数.
      */
@@ -113,7 +103,6 @@ class MysqlPDO
     {
         self::$conn = null;
     }
-
     /**
      * 按表字段调整适合的字段.
      * @param string $table
@@ -130,10 +119,8 @@ class MysqlPDO
         foreach ($columns as $col) {
             $newCol[$col['Field']] = $col['Field'];
         }
-
         return array_intersect_key($rows, $newCol);
     }
-
     /**
      * 对特殊字符进行过滤.
      * @param $value
@@ -150,14 +137,11 @@ class MysqlPDO
         } else if (is_float($value)) {
             return (float) $value;
         }
-
         if (@get_magic_quotes_gpc()) {
             $value = stripslashes($value);
         }
-
         return $this->getConnection()->quote($value);
     }
-
     /**
      * 从数据表中查找一条记录.
      *
@@ -173,10 +157,8 @@ class MysqlPDO
         if ($record = $this->findAll($table, $conditions, $sort, $fields, 1)) {
             return array_pop($record);
         }
-
         return false;
     }
-
     /**
      * 从数据表中查找记录.
      *
@@ -214,12 +196,8 @@ class MysqlPDO
         if (null !== $limit) {
             $sql = $this->setLimit($sql, $limit, $offset);
         }
-
         return $this->getArray($sql, $params);
     }
-
-
-
     /**
      * 在数据表中新增一行数据.
      * @param string $table
@@ -232,12 +210,10 @@ class MysqlPDO
         if (!is_array($row)) {
             return false;
         }
-
         $row = $this->prepareFormat($table, $row);
         if (empty($row)) {
             return false;
         }
-
         $colArr = [];
         $valArr = [];
         foreach ($row as $key => $value) {
@@ -245,24 +221,18 @@ class MysqlPDO
             $valArr[] = ":{$key}";
             $params[":{$key}"] = $value;
         }
-
         $col = '(`'.implode('`,`', $colArr).'`)';
         $val = implode(',', $valArr);
-
         $sql = "INSERT INTO {$this->getTableName($table)} {$col} VALUES ({$val})";
-
         if (false !== $this->exec($sql, $params)) { // 获取当前新增的ID
             if ($newInsertId = $this->lastInsertId()) {
                 return $newInsertId;
             }
         }
-
         return false;
     }
-
-
     /**
-     * 批量insert
+     * 批量执行insert
      * @param string $table
      * @param array $rows 二维数组、一维数组
      * @return bool
@@ -271,10 +241,8 @@ class MysqlPDO
     public function insertAll($table, $rows)
     {
         $sql = $this->createInsert($table, $rows);
-
         return $this->exec($sql);
     }
-
     /**
      * 根据数组（支持一维二维）,生成insert SQL语句.
      *
@@ -287,7 +255,6 @@ class MysqlPDO
         $table = $this->getTableName($table);
         $sql = 'INSERT INTO '.$table;
         $flag = false; // 是否是二维数组
-
         $fields = [];
         $values = [];
         foreach ($data as $key => $val) {
@@ -300,17 +267,14 @@ class MysqlPDO
                 $fields[] = $key;
             }
         }
-
         $sql .= ' (`'.implode('`,`', $fields).'`) VALUES ';
         if ($flag) { // 二维数组
             $sql .= implode(',', $values).';';
         } else { // 一维数组
             $sql .= "('".implode("','", $values)."');";
         }
-
         return $sql;
     }
-
     /**
      * 按条件删除记录
      * @param string $table
@@ -336,10 +300,8 @@ class MysqlPDO
         }
         $table = $this->getTableName($table);
         $sql = "DELETE FROM {$table} {$where}";
-
         return $this->exec($sql, $params);
     }
-
     /**
      * 按字段值查找一条记录.
      * @param  string $table
@@ -354,7 +316,6 @@ class MysqlPDO
             $field => $value,
         ));
     }
-
     /**
      * 返回最后执行的SQL语句供分析.
      *
@@ -364,7 +325,6 @@ class MysqlPDO
     {
         return $this->_arrSql;
     }
-
     /**
      * 返回最后执行的SQL语句供分析.
      *
@@ -374,7 +334,6 @@ class MysqlPDO
     {
         return array_pop($this->_arrSql);
     }
-
     /**
      * 返回上次执行update,create,delete,exec的影响行数.
      *
@@ -384,7 +343,6 @@ class MysqlPDO
     {
         return $this->numRows;
     }
-
     /**
      * 计算符合条件的记录数量.
      *
@@ -410,11 +368,8 @@ class MysqlPDO
         $table = $this->getTableName($table);
         $sql = "SELECT COUNT(*) AS `count` FROM {$table} {$where}";
         $result = $this->getArray($sql);
-
         return (int) $result[0]['count'];
     }
-
-
     /**
      * 修改数据，该函数将根据参数中设置的条件而更新表中数据.
      * @param string $table
@@ -433,7 +388,6 @@ class MysqlPDO
         $params = array();
         if (is_array($conditions)) {
             $join = array();
-
             foreach ($conditions as $key => $condition) {
                 $join[] = "`{$key}` = :{$key}";
                 $params[":{$key}"] = $condition;
@@ -455,8 +409,6 @@ class MysqlPDO
         $resultUpdate = $this->exec($sql, $params);
         return (true === $resultUpdate) ? $this->_stmt->rowCount() : false;
     }
-
-
     /**
      *  按字段值修改一条记录.
      * @param string $table
@@ -472,8 +424,6 @@ class MysqlPDO
             $field => $value,
         ));
     }
-
-
     /**
      * 按给定的数据表的主键删除记录.
      * @param string $table  数据表
@@ -484,12 +434,10 @@ class MysqlPDO
     public function deleteByPk($table, $pk)
     {
         $table = $this->getTableName($table);
-
         return $this->delete($table, array(
             'id' => $pk,
         ));
     }
-
     /**
      * 返回当前插入记录的主键ID.
      *
@@ -499,7 +447,6 @@ class MysqlPDO
     {
         return $this->getConnection()->lastInsertId();
     }
-
     /**
      * 格式化带limit的SQL语句.
      *
@@ -517,20 +464,16 @@ class MysqlPDO
         if ($limit <= 0) {
             throw new Exception("LIMIT argument limit=$limit is not valid");
         }
-
         $offset = (int) $offset;
         if ($offset < 0) {
             throw new Exception("LIMIT argument offset=$offset is not valid");
         }
-
         $sql .= " LIMIT $limit";
         if ($offset > 0) {
             $sql .= " OFFSET $offset";
         }
-
         return $sql;
     }
-
     /**
      * 执行一个SQL语句.
      *
@@ -541,37 +484,19 @@ class MysqlPDO
      */
     public function exec($sql, $params = array())
     {
-        try {
-            if (!$this->_stmt = $this->getConnection()->prepare($sql)) {
-                $pdoError = $this->getConnection()->errorInfo();
-                throw new Exception('[execution error]: '.$pdoError[2]."{$sql}");
-            }
-            if (!empty($params)) {
-                foreach ($params as $key => $val) {
-                    $sql = str_replace($key, "'{$val}'", $sql);
-                    $this->_stmt->bindValue($key, $val);
-                }
-            }
-            $this->_arrSql[] = $sql;
-            return $this->_stmt->execute();
-        } catch (PDOException $e) {
-            if (true === $this->log) {
-                error_log('DATABASE ::'.print_r($e, true));
-            }
-            $this->pdoException = $e;
-
-            return false;
-        } catch (Exception $e) {
-            if (true === $this->log) {
-                error_log('DATABASE ::'.print_r($e, true));
-            }
-            $this->pdoException = $e;
-
-            return false;
+        if (!$this->_stmt = $this->getConnection()->prepare($sql)) {
+            $pdoError = $this->getConnection()->errorInfo();
+            throw new Exception('[execution error]: '.$pdoError[2]."{$sql}");
         }
-
+        if (!empty($params)) {
+            foreach ($params as $key => $val) {
+                $sql = str_replace($key, "'{$val}'", $sql);
+                $this->_stmt->bindValue($key, $val);
+            }
+        }
+        $this->_arrSql[] = $sql;
+        return $this->_stmt->execute();
     }
-
     /**
      * 获取数据表结构.
      * @param string $table 表名称
@@ -586,7 +511,6 @@ class MysqlPDO
         }
         return $tableInfo;
     }
-
     /**
      * 获取表名，处理表前缀
      * @param string $name
@@ -599,36 +523,31 @@ class MysqlPDO
             $name = preg_replace_callback('#\{\{(.*)\}\}#', function ($match) use ($prefix) {
                 return  $prefix.$match[1];
             }, $name);
-
         }
-
         return  '`' . $name .'`';
     }
-
     /**
      * getConnection 取得PDO对象
      * 通过这个访求可以使用PDO内所方法
      * @return PDO
      */
-
     public function getConnection()
     {
         if (null === self::$conn) {
             $this->setConnection();
         }
-
         return self::$conn;
     }
-
     /**
      * 数据库连接
      */
     private function setConnection()
     {
-        if (!isset($this->_config['host'])) {
-            throw new PDOException('HOTS不能为空');
+       try {
+        if (!isset($this->_config['dsn'])) {
+            throw new PDOException('dsn不能为空');
         }
-        if (!isset($this->_config['user'])) {
+        if (!isset($this->_config['username'])) {
             throw new PDOException('用户名不能为空');
         }
         if (!isset($this->_config['password'])) {
@@ -641,20 +560,19 @@ class MysqlPDO
             $this->_config['charset'] = 'utf8';
         }
         $this->tablePrefix = $this->_config['tablePrefix'];
-        try {
+
             self::$conn = new PDO(
-                $this->_config['host'],
-                $this->_config['user'],
+                $this->_config['dsn'],
+                $this->_config['username'],
                 $this->_config['password'],
                 array(
                     PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->_config['charset']}",
                 )
             );
         } catch (PDOException $e) {
-            throw new PDOException($e->getMessage());
+            exit($e);
         }
     }
-
     /**
      * 按SQL语句获取记录结果，返回数组.
      * @param string $sql
@@ -663,23 +581,7 @@ class MysqlPDO
      */
     private function getArray($sql, $params = [])
     {
-        try {
-            $this->exec($sql, $params);
-            return $this->_stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            if (true === $this->log) {
-                error_log('DATABASE WRAPPER::'.print_r($e, true));
-            }
-            $this->pdoException = $e;
-
-            return false;
-        } catch (Exception $e) {
-            if (true === $this->log) {
-                error_log('DATABASE WRAPPER::'.print_r($e, true));
-            }
-            $this->pdoException = $e;
-
-            return false;
-        }
+       $this->exec($sql, $params);
+       return $this->_stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
